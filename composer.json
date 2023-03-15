@@ -1,0 +1,62 @@
+{
+    "name": "bedita/import-tools",
+    "description": "Import Tools for data import with BEdita",
+    "type": "cakephp-plugin",
+    "license": "LGPL-3.0-or-later",
+    "support": {
+        "source": "https://github.com/bedita/import-tools",
+        "issues": "https://github.com/bedita/import-tools/issues"
+    },
+    "authors": [
+        {
+            "name": "Atlas Consulting s.r.l.",
+            "email": "info@atlasconsulting.it",
+            "homepage": "https://www.atlasconsulting.it"
+        },
+        {
+            "name": "Chia Lab s.r.l.",
+            "email": "dev@chialab.it",
+            "homepage": "http://www.chialab.it"
+        }
+    ],
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "cakephp/cakephp": "^4.2.2"
+    },
+    "require-dev": {
+        "cakephp/cakephp-codesniffer": "~4.5.1",
+        "phpstan/phpstan": "^1.8",
+        "phpstan/extension-installer": "^1.0",
+        "phpstan/phpstan-deprecation-rules": "^1.0",
+        "phpunit/phpunit": "^9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "BEdita\\ImportTools\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BEdita\\ImportTools\\Test\\": "tests",
+            "Cake\\Test\\": "./vendor/cakephp/cakephp/tests"
+        }
+    },
+    "scripts": {
+        "check": [
+            "@test",
+            "@cs-check"
+        ],
+        "cs-check": "vendor/bin/phpcs --colors -p --standard=vendor/cakephp/cakephp-codesniffer/CakePHP ./src ./tests",
+        "cs-fix": "vendor/bin/phpcbf --colors --standard=vendor/cakephp/cakephp-codesniffer/CakePHP ./src ./tests",
+        "test": "vendor/bin/phpunit --colors=always",
+        "stan": "vendor/bin/phpstan analyse"
+    },
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "phpstan/extension-installer": true,
+            "cakephp/plugin-installer": true
+        }
+    }
+}

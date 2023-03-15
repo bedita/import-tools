@@ -1,0 +1,32 @@
+# Project files #
+#################
+/composer.lock
+/phpstan.neon
+/phpunit.xml
+/coverage
+/vendor
+.env
+.phpunit.result.cache
+
+# IDE and editor specific files #
+#################################
+/nbproject
+/tags
+.idea
+.project
+.buildpath
+.settings
+.vscode
+.history
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+.directory
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
