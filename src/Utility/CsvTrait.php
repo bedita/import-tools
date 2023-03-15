@@ -42,9 +42,9 @@ trait CsvTrait
         $enclosure = $options['enclosure'];
         $escape = $options['escape'];
         flock($fh, LOCK_SH);
-        $header = fgetcsv($fh, null, $delimiter, $enclosure, $escape);
+        $header = fgetcsv($fh, 0, $delimiter, $enclosure, $escape);
         $i = 0;
-        while (($row = fgetcsv($fh, null, $delimiter, $enclosure, $escape)) !== false) {
+        while (($row = fgetcsv($fh, 0, $delimiter, $enclosure, $escape)) !== false) {
             yield array_combine($header, $row);
             $i++;
         }
