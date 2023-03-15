@@ -25,9 +25,9 @@ trait CsvTrait
     use InstanceConfigTrait;
 
     /**
-     * Progressively read a CSV file, line by line.
+     * Progressively read a CSV file, line by line
      *
-     * @param string $path Path to CSV file.
+     * @param string $path Path to CSV file
      * @return \Generator<array<string, string>>
      */
     public function readCsv($path): \Generator
