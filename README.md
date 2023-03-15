@@ -1,7 +1,7 @@
 # BEdita/ImportTools plugin for CakePHP apps using BEdita
 
 [![Github Actions](https://github.com/bedita/import-tools/workflows/php/badge.svg)](https://github.com/bedita/import-tools/actions?query=workflow%3Aphp)
-[![codecov](https://codecov.io/gh/bedita/import-tools/branch/master/graph/badge.svg)](https://codecov.io/gh/bedita/import-tools)
+[![codecov](https://codecov.io/gh/bedita/import-tools/branch/main/graph/badge.svg)](https://codecov.io/gh/bedita/import-tools)
 [![phpstan](https://img.shields.io/badge/PHPStan-level%200-brightgreen.svg)](https://phpstan.org)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/bedita/import-tools/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/bedita/import-tools/?branch=master)
 [![image](https://img.shields.io/packagist/v/bedita/import-tools.svg?label=stable)](https://packagist.org/packages/bedita/import-tools)
