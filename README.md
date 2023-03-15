@@ -2,10 +2,10 @@
 
 [![Github Actions](https://github.com/bedita/import-tools/workflows/php/badge.svg)](https://github.com/bedita/import-tools/actions?query=workflow%3Aphp)
 [![codecov](https://codecov.io/gh/bedita/import-tools/branch/main/graph/badge.svg)](https://codecov.io/gh/bedita/import-tools)
-[![phpstan](https://img.shields.io/badge/PHPStan-level%200-brightgreen.svg)](https://phpstan.org)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/bedita/import-tools/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/bedita/import-tools/?branch=master)
+[![phpstan](https://img.shields.io/badge/PHPStan-level%205-brightgreen.svg)](https://phpstan.org)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/bedita/import-tools/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/bedita/import-tools/?branch=main)
 [![image](https://img.shields.io/packagist/v/bedita/import-tools.svg?label=stable)](https://packagist.org/packages/bedita/import-tools)
-[![image](https://img.shields.io/github/license/bedita/import-tools.svg)](https://github.com/bedita/import-tools/blob/master/LICENSE.LGPL)
+[![image](https://img.shields.io/github/license/bedita/import-tools.svg)](https://github.com/bedita/import-tools/blob/main/LICENSE.LGPL)
 
 ## Installation
 
