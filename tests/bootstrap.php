@@ -21,6 +21,9 @@ declare(strict_types=1);
  * installed as a dependency of an application.
  */
 
+use BEdita\Core\Filesystem\Adapter\LocalAdapter;
+use BEdita\Core\Filesystem\FilesystemRegistry;
+
 $findRoot = function ($root) {
     do {
         $lastRoot = $root;
@@ -39,3 +42,11 @@ chdir($root);
 
 require_once 'vendor/cakephp/cakephp/src/basics.php';
 require_once 'vendor/autoload.php';
+
+const TEST_FILES = __DIR__ . DS . 'files';
+const WWW_ROOT = TEST_FILES; // Necessary to avoid warning when instantiating LocalAdapter.
+
+FilesystemRegistry::setConfig('test-data', [
+    'className' => LocalAdapter::class,
+    'path' => TEST_FILES,
+]);

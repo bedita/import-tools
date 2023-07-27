@@ -15,13 +15,12 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Test\TestCase\Utility;
 
 use BEdita\ImportTools\Utility\CsvTrait;
-use Cake\Http\Exception\NotFoundException;
-use Cake\TestSuite\TestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * {@see \BEdita\ImportTools\Utility\CsvTrait} Test Case
  *
- * @coversDefaultClass \BEdita\ImportTools\Utility\CsvTrait
+ * @covers \BEdita\ImportTools\Utility\CsvTrait
  */
 class CsvTraitTest extends TestCase
 {
@@ -39,44 +38,36 @@ class CsvTraitTest extends TestCase
     ];
 
     /**
-     * Test `readCsv` method, NotFoundException
+     * Test `readCsv` method with a file that does not exist.
      *
      * @return void
-     * @covers ::readCsv()
      */
     public function testReadNotFound(): void
     {
-        $path = sprintf('%s/tests/files/not-found.csv', getcwd());
-        $expected = new NotFoundException(sprintf('File not found: %s', $path));
-        $this->expectException(get_class($expected));
-        $this->expectExceptionCode($expected->getCode());
-        $this->expectExceptionMessage($expected->getMessage());
-        $actual = [];
-        foreach ($this->readCsv($path) as $row) {
-            $actual[] = $row;
-        }
-        static::assertSame('Generator', get_class((object)$actual[0]));
+        $path = TEST_FILES . DS . 'not-found.csv';
+
+        $expected = new \RuntimeException(sprintf('Cannot open file: %s', $path));
+        $this->expectExceptionObject($expected);
+
+        $this->readCsv($path)->next();
     }
 
     /**
      * Test `readCsv` method
      *
      * @return void
-     * @covers ::readCsv()
      */
     public function testReadCsv(): void
     {
-        $path = sprintf('%s/tests/files/authors.csv', getcwd());
         $expected = [
             ['title' => 'The Great Gatsby', 'author' => 'Francis Scott Fitzgerald'],
             ['title' => 'Moby-Dick', 'author' => 'Herman Melville'],
             ['title' => 'Ulysses', 'author' => 'James Joyce'],
             ['title' => 'Hearth of Darkness', 'author' => 'Joseph Conrad'],
         ];
-        $actual = [];
-        foreach ($this->readCsv($path) as $row) {
-            $actual[] = $row;
-        }
+
+        $actual = iterator_to_array($this->readCsv(TEST_FILES . DS . 'authors.csv'));
+
         static::assertSame($expected, $actual);
     }
 }
