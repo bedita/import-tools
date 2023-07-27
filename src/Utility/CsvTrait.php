@@ -15,7 +15,6 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Utility;
 
 use Cake\Core\InstanceConfigTrait;
-use Cake\Http\Exception\NotFoundException;
 
 /**
  * Trait for share Csv stuff.
@@ -23,32 +22,33 @@ use Cake\Http\Exception\NotFoundException;
 trait CsvTrait
 {
     use InstanceConfigTrait;
+    use FileTrait;
 
     /**
      * Progressively read a CSV file, line by line
      *
      * @param string $path Path to CSV file
-     * @return \Generator<array<string, string>>
+     * @param bool $assoc If `true` uses first CSV row as column names, thus yielding associative arrays. Otherwise, all rows are yielded and columns are indexed by their positions.
+     * @return \Generator<array<array-key, string>>
      */
-    public function readCsv($path): \Generator
+    protected function readCsv(string $path, bool $assoc = true): \Generator
     {
+        $delimiter = $this->getConfig('csv.delimiter', ',');
+        $enclosure = $this->getConfig('csv.enclosure', '"');
+        $escape = $this->getConfig('csv.escape', '\\');
+
+        [$fh, $close] = static::readFileStream($path);
+
         try {
-            $fh = fopen($path, 'rb');
-        } catch (\Exception $e) {
-            throw new NotFoundException(sprintf('File not found: %s', $path));
+            flock($fh, LOCK_SH);
+
+            $header = $assoc ? fgetcsv($fh, 0, $delimiter, $enclosure, $escape) : null;
+            $i = 0;
+            while (($row = fgetcsv($fh, 0, $delimiter, $enclosure, $escape)) !== false) {
+                yield $i++ => $header !== null ? array_combine($header, $row) : $row;
+            }
+        } finally {
+            $close();
         }
-        $options = $this->getConfig('csv');
-        $delimiter = $options['delimiter'];
-        $enclosure = $options['enclosure'];
-        $escape = $options['escape'];
-        flock($fh, LOCK_SH);
-        $header = fgetcsv($fh, 0, $delimiter, $enclosure, $escape);
-        $i = 0;
-        while (($row = fgetcsv($fh, 0, $delimiter, $enclosure, $escape)) !== false) {
-            yield array_combine($header, $row);
-            $i++;
-        }
-        flock($fh, LOCK_UN);
-        fclose($fh);
     }
 }
