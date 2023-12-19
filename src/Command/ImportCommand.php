@@ -189,7 +189,9 @@ class ImportCommand extends Command
      */
     protected function objects(): void
     {
+        /** @var \BEdita\Core\Model\Table\ObjectsTable $objectsTable */
         $objectsTable = $this->fetchTable('objects');
+        /** @var \BEdita\Core\Model\Table\ObjectsTable $table */
         $table = $this->fetchTable($this->type);
         foreach ($this->readCsv($this->filename) as $obj) {
             $this->processed++;
@@ -247,16 +249,23 @@ class ImportCommand extends Command
     protected function translationFields(array &$translation): void
     {
         $objectUname = (string)Hash::get($translation, 'object_uname');
-        $objectEntity = $this->fetchTable('Objects')->find('unameId', [$objectUname])->firstOrFail();
-        $entity = $this->fetchTable('Translations')->find()->where([
-            'object_id' => $objectEntity->id,
-            'lang' => $translation['lang'],
-        ])->first();
-        if ($entity) {
+        /** @var \BEdita\Core\Model\Table\ObjectsTable $objectsTable */
+        $objectsTable = $this->fetchTable('Objects');
+        $objectId = $objectsTable->getId($objectUname);
+        /** @var \BEdita\Core\Model\Table\TranslationsTable $translationsTable */
+        $translationsTable = $this->fetchTable('Translations');
+        /** @var \BEdita\Core\Model\Entity\Translation $entity */
+        $entity = $translationsTable->find()
+            ->where([
+                'object_id' => $objectId,
+                'lang' => $translation['lang'],
+            ])
+            ->first();
+        if ($entity->id) {
             $translation['id'] = $entity->id;
         }
         unset($translation['object_uname']);
-        $translation['object_id'] = $objectEntity->id;
+        $translation['object_id'] = $objectId;
     }
 
     /**

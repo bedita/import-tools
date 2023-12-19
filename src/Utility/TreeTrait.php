@@ -32,7 +32,9 @@ trait TreeTrait
      */
     protected function setParent(ObjectEntity $entity, string $folder): void
     {
-        $parentEntity = $this->fetchTable('Folders')->find('unameId', [$folder])->firstOrFail();
+        /** @var \BEdita\Core\Model\Table\FoldersTable $foldersTable */
+        $foldersTable = $this->fetchTable('Folders');
+        $parentEntity = $foldersTable->getId($folder);
         $association = $entity->getTable()->associations()->getByProperty('parents');
         $action = new SetRelatedObjectsAction(compact('association'));
         $relatedEntities = [$parentEntity];
