@@ -296,9 +296,7 @@ class Import
     {
         $fields = (string)Hash::get($source, 'translated_fields');
         if (!empty($fields)) {
-            $fields = empty($fields) ? [] : json_decode($fields, true);
-
-            return $fields;
+            return json_decode($fields, true);
         }
         $fields = [];
         foreach ($source as $key => $value) {

@@ -391,6 +391,7 @@ class ImportTest extends TestCase
         $uname = (string)Hash::get($data, 'object_uname');
         $objectsTable = $this->fetchTable('objects');
         if (!$objectsTable->exists(compact('uname'))) {
+            /** @var \BEdita\Core\Model\Entity\ObjectEntity $doc */
             $doc = $objectsTable->newEntity(['uname' => $uname, 'status' => 'on']);
             $doc->type = 'documents';
             $objectsTable->save($doc);
