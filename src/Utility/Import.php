@@ -272,9 +272,6 @@ class Import
         $entity->set('translated_fields', $this->translatedFields($data));
         $entity->set('status', $this->getConfig('defaults')['status']);
         $entity->set('lang', $data['lang']);
-        if (!empty($data['id'])) {
-            $entity->set('id', $data['id']);
-        }
         if ($this->dryrun === true) {
             $this->skipped++;
 

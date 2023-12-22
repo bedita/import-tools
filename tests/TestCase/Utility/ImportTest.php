@@ -16,6 +16,7 @@ namespace BEdita\ImportTools\Test\TestCase\Utility;
 
 use BEdita\Core\Utility\LoggedUser;
 use BEdita\ImportTools\Utility\Import;
+use Cake\Http\Exception\BadRequestException;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\TestSuite\TestCase;
 use Cake\Utility\Hash;
@@ -77,20 +78,32 @@ class ImportTest extends TestCase
      */
     public function objectsProvider(): array
     {
-        $filename = TEST_FILES . DS . 'articles1.csv';
-        $type = 'documents';
-        $parent = '';
-
         return [
+            'wrong type' => [
+                TEST_FILES . DS . 'articles1.csv',
+                'documentzzzz',
+                '',
+                false,
+                [
+                    'filename' => TEST_FILES . DS . 'articles1.csv',
+                    'type' => 'documentzzzz',
+                    'parent' => '',
+                    'dryrun' => false,
+                    'processed' => 3,
+                    'saved' => 0,
+                    'errors' => 3,
+                    'skipped' => 0,
+                ],
+            ],
             'process objects with dry run true' => [
-                $filename,
-                $type,
-                $parent,
+                TEST_FILES . DS . 'articles1.csv',
+                'documents',
+                '',
                 true,
                 [
-                    'filename' => $filename,
-                    'type' => $type,
-                    'parent' => $parent,
+                    'filename' => TEST_FILES . DS . 'articles1.csv',
+                    'type' => 'documents',
+                    'parent' => '',
                     'dryrun' => true,
                     'processed' => 3,
                     'saved' => 0,
@@ -99,14 +112,14 @@ class ImportTest extends TestCase
                 ],
             ],
             'process objects with dry run false' => [
-                $filename,
-                $type,
-                $parent,
+                TEST_FILES . DS . 'articles1.csv',
+                'documents',
+                '',
                 false,
                 [
-                    'filename' => $filename,
-                    'type' => $type,
-                    'parent' => $parent,
+                    'filename' => TEST_FILES . DS . 'articles1.csv',
+                    'type' => 'documents',
+                    'parent' => '',
                     'dryrun' => false,
                     'processed' => 3,
                     'saved' => 3,
@@ -145,9 +158,6 @@ class ImportTest extends TestCase
      */
     public function objectProvider(): array
     {
-        $filename = TEST_FILES . DS . 'articles1.csv';
-        $type = 'documents';
-        $parent = '';
         $data = [
             'title' => 'test title',
             'description' => 'test description',
@@ -159,17 +169,25 @@ class ImportTest extends TestCase
 
         return [
             'process object with dry run true' => [
-                $filename,
-                $type,
-                $parent,
+                TEST_FILES . DS . 'articles1.csv',
+                'documents',
+                '',
                 true,
                 $data,
                 $data,
             ],
             'process object with dry run false' => [
-                $filename,
-                $type,
-                $parent,
+                TEST_FILES . DS . 'articles1.csv',
+                'documents',
+                '',
+                false,
+                $data,
+                $data,
+            ],
+            'process object with parent' => [
+                TEST_FILES . DS . 'articles1.csv',
+                'documents',
+                'parent-uname',
                 false,
                 $data,
                 $data,
@@ -180,28 +198,103 @@ class ImportTest extends TestCase
     /**
      * Test `object` method
      *
-     * @param string $filename Filename
-     * @param string $type Type
-     * @param string $parent Parent
-     * @param bool $dryrun Dry run
+     * @param string $f The Filename
+     * @param string $t The Type
+     * @param string $p The Parent uname
+     * @param bool $dr Dry run
      * @param array $data Data
      * @param array $expected Expected
      * @return void
      * @dataProvider objectProvider
      * @covers ::object()
      */
-    public function testObject(string $filename, string $type, string $parent, bool $dryrun, array $data, array $expected): void
+    public function testObject(string $f, string $t, string $p, bool $dr, array $data, array $expected): void
     {
-        $import = new Import($filename, $type, $parent, $dryrun);
+        if ($p !== '') {
+            /** @var \BEdita\Core\Model\Table\FoldersTable $foldersTable */
+            $foldersTable = $this->fetchTable('folders');
+            if (!$foldersTable->exists(['uname' => $p])) {
+                /** @var \BEdita\Core\Model\Entity\ObjectEntity $folder */
+                $folder = $foldersTable->newEntity(['uname' => $p, 'status' => 'on']);
+                $folder->type = 'folders';
+                $folder = $foldersTable->save($folder);
+                $p = $folder->uname;
+            }
+        }
+        $import = new Import($f, $t, $p, $dr);
         $actual = $import->object($data);
         foreach ($expected as $key => $value) {
             static::assertEquals($value, $actual->$key);
         }
-        if ($dryrun === true) {
+        if ($dr === true) {
             static::assertEquals(1, $import->skipped);
         } else {
             static::assertEquals(1, $import->saved);
         }
+    }
+
+    /**
+     * Test `object` method when exists
+     *
+     * @return void
+     * @dataProvider objectProvider
+     * @covers ::object()
+     */
+    public function testObjectWhenExists(): void
+    {
+        $import = new Import(TEST_FILES . DS . 'articles1.csv', 'documents', '', false);
+        $data = [
+            'title' => 'test title',
+            'description' => 'test description',
+            'body' => 'test body',
+            'status' => 'on',
+            'uname' => 'test-uname',
+            'lang' => 'en',
+        ];
+        /** @var \BEdita\Core\Model\Table\ObjectsTable $objectsTable */
+        $objectsTable = $this->fetchTable('objects');
+        /** @var \BEdita\Core\Model\Entity\ObjectEntity $doc */
+        $doc = $objectsTable->newEntity($data);
+        $doc->type = 'documents';
+        $objectsTable->save($doc);
+        $actual = $import->object($data);
+        foreach ($data as $key => $value) {
+            static::assertEquals($value, $actual->$key);
+        }
+        static::assertEquals(1, $import->saved);
+    }
+
+    /**
+     * Test `object` method when exists
+     *
+     * @return void
+     * @dataProvider objectProvider
+     * @covers ::object()
+     */
+    public function testObjectWhenExistsWrongType(): void
+    {
+        $exception = new BadRequestException(
+            sprintf('Object uname "%s" already present with another type "%s"', 'test-uname', 'events')
+        );
+        $this->expectExceptionObject($exception);
+        $import = new Import(TEST_FILES . DS . 'articles1.csv', 'documents', '', false);
+        $data = [
+            'title' => 'test title',
+            'description' => 'test description',
+            'body' => 'test body',
+            'status' => 'on',
+            'uname' => 'test-uname',
+            'lang' => 'en',
+        ];
+        /** @var \BEdita\Core\Model\Table\ObjectsTable $objectsTable */
+        $objectsTable = $this->fetchTable('objects');
+        /** @var \BEdita\Core\Model\Entity\ObjectEntity $doc */
+        $doc = $objectsTable->newEntity($data);
+        $doc->type = 'events';
+        $objectsTable->save($doc);
+        $actual = $import->object($data);
+        static::assertEquals(0, $actual->saved);
+        static::assertEquals(0, $actual->errors);
     }
 
     /**
