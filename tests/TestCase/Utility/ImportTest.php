@@ -292,6 +292,7 @@ class ImportTest extends TestCase
         $doc = $objectsTable->newEntity($data);
         $doc->type = 'events';
         $objectsTable->save($doc);
+        /** @var \BEdita\ImportTools\Utility\Import $actual */
         $actual = $import->object($data);
         static::assertEquals(0, $actual->saved);
         static::assertEquals(0, $actual->errors);
