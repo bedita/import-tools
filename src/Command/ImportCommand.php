@@ -93,14 +93,14 @@ class ImportCommand extends Command
      */
     public function execute(Arguments $args, ConsoleIo $io)
     {
-        $filename = $args->getOption('file');
+        $filename = (string)$args->getOption('file');
         if (!file_exists($filename)) {
             $io->out(sprintf('Bad csv source file name "%s"', $filename));
 
             return;
         }
-        $type = $args->getOption('type');
-        $parent = $args->getOption('parent');
+        $type = (string)$args->getOption('type');
+        $parent = (string)$args->getOption('parent');
         $dryrun = $args->getOption('dryrun') ? true : false;
         $io->out('---------------------------------------');
         $io->out('Start');
