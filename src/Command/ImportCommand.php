@@ -114,9 +114,10 @@ class ImportCommand extends Command
         $import->$method();
         $io->out(
             sprintf(
-                'Processed: %d, Saved: %d, Errors: %d',
+                'Processed: %d, Saved: %d, Skipped: %d, Errors: %d',
                 $import->processed,
                 $import->saved,
+                $import->skipped,
                 $import->errors
             )
         );

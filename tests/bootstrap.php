@@ -29,10 +29,13 @@ use Cake\Cache\Cache;
 use Cake\Cache\Engine\ArrayEngine;
 use Cake\Cache\Engine\NullEngine;
 use Cake\Core\Configure;
+use Cake\Core\Plugin;
 use Cake\Datasource\ConnectionManager;
 use Cake\Log\Engine\ConsoleLog;
 use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
+use Cake\Routing\Route\Route;
+use Cake\Routing\Router;
 use Cake\Utility\Security;
 use Migrations\TestSuite\Migrator;
 
@@ -117,6 +120,10 @@ FilesystemRegistry::setConfig('test-data', [
 $app = new Application(dirname(__DIR__) . '/config');
 $app->bootstrap();
 $app->pluginBootstrap();
+
+Router::reload();
+Router::fullBaseUrl('http://localhost');
+Plugin::getCollection()->add(new \BEdita\ImportTools\Plugin(['middleware' => true]));
 
 // clear all before running tests
 TableRegistry::getTableLocator()->clear();
