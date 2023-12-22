@@ -34,7 +34,6 @@ use Cake\Datasource\ConnectionManager;
 use Cake\Log\Engine\ConsoleLog;
 use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
-use Cake\Routing\Route\Route;
 use Cake\Routing\Router;
 use Cake\Utility\Security;
 use Migrations\TestSuite\Migrator;
