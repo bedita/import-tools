@@ -103,4 +103,16 @@ class ImportCommandTest extends TestCase
         $this->assertOutputContains('Processed: 3, Saved: 0, Skipped: 3, Errors: 0');
         $this->assertOutputContains('Done, bye!');
     }
+
+    /**
+     * Test execute method with parent option
+     *
+     * @return void
+     * @covers ::execute()
+     */
+    public function testExecuteOnMissingFile(): void
+    {
+        $this->exec('import -f missing.csv -t documents --dryrun 1');
+        $this->assertOutputContains('Bad csv source file name "missing.csv"');
+    }
 }
