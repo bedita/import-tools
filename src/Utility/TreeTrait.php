@@ -34,7 +34,8 @@ trait TreeTrait
     {
         /** @var \BEdita\Core\Model\Table\FoldersTable $foldersTable */
         $foldersTable = $this->fetchTable('Folders');
-        $parentEntity = $foldersTable->getId($folder);
+        $parentId = $foldersTable->getId($folder);
+        $parentEntity = $foldersTable->get($parentId);
         $association = $entity->getTable()->associations()->getByProperty('parents');
         $action = new SetRelatedObjectsAction(compact('association'));
         $relatedEntities = [$parentEntity];

@@ -5,3 +5,5 @@ parameters:
     - src
     - tests
   level: 5
+  checkMissingIterableValueType: false
+  checkGenericClassInNonGenericObjectType: false
