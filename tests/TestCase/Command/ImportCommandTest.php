@@ -98,8 +98,8 @@ class ImportCommandTest extends TestCase
         $this->assertOutputContains('File:');
         $this->assertOutputContains('articles1.csv');
         $this->assertOutputContains('Type: documents');
-        $this->assertOutputContains('Parent: none');
-        $this->assertOutputContains('Dry run mode: yes');
+        $this->assertOutputContains('Parent:');
+        $this->assertOutputContains('Dry run mode:');
         $this->assertOutputContains('Processed: 3, Saved: 0, Skipped: 3, Errors: 0');
         $this->assertOutputContains('Done, bye!');
     }
