@@ -167,11 +167,11 @@ class Import
      *
      * @return void
      */
-    public function objects(): void
+    public function saveObjects(): void
     {
         foreach ($this->readCsv($this->filename) as $obj) {
             try {
-                $this->object($obj);
+                $this->saveObject($obj);
             } catch (\Exception $e) {
                 $this->errorsDetails[] = $e->getMessage();
                 $this->errors++;
@@ -187,7 +187,7 @@ class Import
      * @param array $obj Object data
      * @return \BEdita\Core\Model\Entity\ObjectEntity
      */
-    public function object(array $obj): ObjectEntity
+    public function saveObject(array $obj): ObjectEntity
     {
         $entity = $this->typeTable->newEmptyEntity();
         if (!empty($obj['uname'])) {
@@ -224,11 +224,11 @@ class Import
      *
      * @return void
      */
-    public function translations(): void
+    public function saveTranslations(): void
     {
         foreach ($this->readCsv($this->filename) as $translation) {
             try {
-                $this->translation($translation);
+                $this->saveTranslation($translation);
             } catch (\Exception $e) {
                 $this->errorsDetails[] = $e->getMessage();
                 $this->errors++;
@@ -245,7 +245,7 @@ class Import
      * @return \BEdita\Core\Model\Entity\Translation
      * @throws \Cake\Http\Exception\BadRequestException
      */
-    public function translation(array $data): Translation
+    public function saveTranslation(array $data): Translation
     {
         $uname = (string)Hash::get($data, 'object_uname');
         if (!$this->objectsTable->exists(compact('uname'))) {

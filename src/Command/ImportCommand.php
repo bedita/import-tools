@@ -110,7 +110,7 @@ class ImportCommand extends Command
         $io->out(sprintf('Dry run mode: %s', $dryrun === true ? 'yes' : 'no'));
         LoggedUser::setUserAdmin();
         $import = new Import($filename, $type, $parent, $dryrun);
-        $method = $type !== 'translations' ? 'objects' : 'translations';
+        $method = $type !== 'translations' ? 'saveObjects' : 'saveTranslations';
         $import->$method();
         $io->out(
             sprintf(

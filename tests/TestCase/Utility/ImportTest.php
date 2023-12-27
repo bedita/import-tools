@@ -72,11 +72,11 @@ class ImportTest extends TestCase
     }
 
     /**
-     * Data provider for objects test case.
+     * Data provider for save objects test case.
      *
      * @return array
      */
-    public function objectsProvider(): array
+    public function saveObjectsProvider(): array
     {
         return [
             'wrong type' => [
@@ -131,7 +131,7 @@ class ImportTest extends TestCase
     }
 
     /**
-     * Test `objects` method
+     * Test `saveObjects` method
      *
      * @param string $filename Filename
      * @param string $type Type
@@ -139,24 +139,24 @@ class ImportTest extends TestCase
      * @param bool $dryrun Dry run
      * @param array $expected Expected
      * @return void
-     * @dataProvider objectsProvider
-     * @covers ::objects()
+     * @dataProvider saveObjectsProvider
+     * @covers ::saveObjects()
      */
-    public function testObjects(string $filename, string $type, string $parent, bool $dryrun, array $expected): void
+    public function testSaveObjects(string $filename, string $type, string $parent, bool $dryrun, array $expected): void
     {
         $import = new Import($filename, $type, $parent, $dryrun);
-        $import->objects();
+        $import->saveObjects();
         foreach ($expected as $key => $value) {
             static::assertEquals($value, $import->$key);
         }
     }
 
     /**
-     * Data provider for object test case.
+     * Data provider for save object test case.
      *
      * @return array
      */
-    public function objectProvider(): array
+    public function saveObjectProvider(): array
     {
         $data = [
             'title' => 'test title',
@@ -196,7 +196,7 @@ class ImportTest extends TestCase
     }
 
     /**
-     * Test `object` method
+     * Test `saveObject` method
      *
      * @param string $f The Filename
      * @param string $t The Type
@@ -205,10 +205,10 @@ class ImportTest extends TestCase
      * @param array $data Data
      * @param array $expected Expected
      * @return void
-     * @dataProvider objectProvider
-     * @covers ::object()
+     * @dataProvider saveObjectProvider
+     * @covers ::saveObject()
      */
-    public function testObject(string $f, string $t, string $p, bool $dr, array $data, array $expected): void
+    public function testSaveObject(string $f, string $t, string $p, bool $dr, array $data, array $expected): void
     {
         if ($p !== '') {
             /** @var \BEdita\Core\Model\Table\FoldersTable $foldersTable */
@@ -222,7 +222,7 @@ class ImportTest extends TestCase
             }
         }
         $import = new Import($f, $t, $p, $dr);
-        $actual = $import->object($data);
+        $actual = $import->saveObject($data);
         foreach ($expected as $key => $value) {
             static::assertEquals($value, $actual->$key);
         }
@@ -234,13 +234,13 @@ class ImportTest extends TestCase
     }
 
     /**
-     * Test `object` method when exists
+     * Test `saveObject` method when exists
      *
      * @return void
-     * @dataProvider objectProvider
-     * @covers ::object()
+     * @dataProvider saveObjectProvider
+     * @covers ::saveObject()
      */
-    public function testObjectWhenExists(): void
+    public function testSaveObjectWhenExists(): void
     {
         $import = new Import(TEST_FILES . DS . 'articles1.csv', 'documents', '', false);
         $data = [
@@ -257,7 +257,7 @@ class ImportTest extends TestCase
         $doc = $objectsTable->newEntity($data);
         $doc->type = 'documents';
         $objectsTable->save($doc);
-        $actual = $import->object($data);
+        $actual = $import->saveObject($data);
         foreach ($data as $key => $value) {
             static::assertEquals($value, $actual->$key);
         }
@@ -265,13 +265,13 @@ class ImportTest extends TestCase
     }
 
     /**
-     * Test `object` method when exists
+     * Test `saveObject` method when exists
      *
      * @return void
-     * @dataProvider objectProvider
-     * @covers ::object()
+     * @dataProvider saveObjectProvider
+     * @covers ::saveObject()
      */
-    public function testObjectWhenExistsWrongType(): void
+    public function testSaveObjectWhenExistsWrongType(): void
     {
         $exception = new BadRequestException(
             sprintf('Object uname "%s" already present with another type "%s"', 'test-uname', 'events')
@@ -293,17 +293,17 @@ class ImportTest extends TestCase
         $doc->type = 'events';
         $objectsTable->save($doc);
         /** @var \BEdita\ImportTools\Utility\Import $actual */
-        $actual = $import->object($data);
+        $actual = $import->saveObject($data);
         static::assertEquals(0, $actual->saved);
         static::assertEquals(0, $actual->errors);
     }
 
     /**
-     * Data provider for translations with error test case.
+     * Data provider for save translations with error test case.
      *
      * @return array
      */
-    public function translationsWithErrorProvider(): array
+    public function saveTranslationsWithErrorProvider(): array
     {
         $filename = TEST_FILES . DS . 'translations1.csv';
         $type = 'translations';
@@ -356,7 +356,7 @@ class ImportTest extends TestCase
     }
 
     /**
-     * Test `translations` method on error
+     * Test `saveTranslations` method on error
      *
      * @param string $f Filename
      * @param string $t Type
@@ -364,24 +364,24 @@ class ImportTest extends TestCase
      * @param bool $dr Dry run
      * @param array $exp Expected
      * @return void
-     * @dataProvider translationsWithErrorProvider
-     * @covers ::translations()
+     * @dataProvider saveTranslationsWithErrorProvider
+     * @covers ::saveTranslations()
      */
-    public function testTranslationsWithError(string $f, string $t, string $p, bool $dr, array $exp): void
+    public function testSaveTranslationsWithError(string $f, string $t, string $p, bool $dr, array $exp): void
     {
         $import = new Import($f, $t, $p, $dr);
-        $import->translations();
+        $import->saveTranslations();
         foreach ($exp as $key => $value) {
             static::assertEquals($value, $import->$key);
         }
     }
 
     /**
-     * Data provider for translations test case.
+     * Data provider for save translations test case.
      *
      * @return array
      */
-    public function translationsProvider(): array
+    public function saveTranslationsProvider(): array
     {
         return [
             'import articles and translations with dry run true' => [
@@ -420,33 +420,33 @@ class ImportTest extends TestCase
     }
 
     /**
-     * Test `translations` method
+     * Test `saveTranslations` method
      *
      * @param string $arf Articles filename
      * @param string $trf Translations filename
      * @param bool $trdr Translations dry run
      * @param array $exp Expected
      * @return void
-     * @dataProvider translationsProvider
-     * @covers ::translations()
+     * @dataProvider saveTranslationsProvider
+     * @covers ::saveTranslations()
      */
-    public function testTranslations(string $arf, string $trf, bool $trdr, array $exp): void
+    public function testSaveTranslations(string $arf, string $trf, bool $trdr, array $exp): void
     {
         $import = new Import($arf, 'documents', '', false);
-        $import->objects();
+        $import->saveObjects();
         $import = new Import($trf, 'translations', '', $trdr);
-        $import->translations();
+        $import->saveTranslations();
         foreach ($exp as $key => $value) {
             static::assertEquals($value, $import->$key);
         }
     }
 
     /**
-     * Data provider for translation test case.
+     * Data provider for save translation test case.
      *
      * @return array
      */
-    public function translationProvider(): array
+    public function saveTranslationProvider(): array
     {
         $data = [
             'translation_title' => 'titolo test',
@@ -473,14 +473,14 @@ class ImportTest extends TestCase
     }
 
     /**
-     * Test `translation` method
+     * Test `saveTranslation` method
      *
      * @return void
-     * @dataProvider translationProvider
-     * @covers ::translation()
+     * @dataProvider saveTranslationProvider
+     * @covers ::saveTranslation()
      * @covers ::translatedFields()
      */
-    public function testTranslation(string $f, bool $dr, array $data, array $expected): void
+    public function testSaveTranslation(string $f, bool $dr, array $data, array $expected): void
     {
         $uname = (string)Hash::get($data, 'object_uname');
         $objectsTable = $this->fetchTable('objects');
@@ -491,7 +491,7 @@ class ImportTest extends TestCase
             $objectsTable->save($doc);
         }
         $import = new Import($f, 'translations', '', $dr);
-        $actual = $import->translation($data);
+        $actual = $import->saveTranslation($data);
         foreach ($expected as $key => $value) {
             if (in_array($key, ['id', 'object_uname', 'lang'])) {
                 continue;
