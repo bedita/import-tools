@@ -201,7 +201,7 @@ class Import
                     throw new BadRequestException(
                         sprintf(
                             'Object "%s" already present with another type "%s"',
-                            $identifier,
+                            $conditions[$identifier],
                             $o->type
                         )
                     );
