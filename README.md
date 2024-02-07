@@ -22,3 +22,12 @@ The recommended way to install composer packages is:
 ```bash
 composer require bedita/import-tools
 ```
+
+## ImportCommand
+
+This command provides a tool to import data from csv file.
+
+Usage example:
+```bash
+bin/cake import --file input.csv --type documents --parent my-root-folder-uname --dryrun y
+```

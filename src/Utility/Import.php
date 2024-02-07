@@ -190,17 +190,23 @@ class Import
     public function saveObject(array $obj): ObjectEntity
     {
         $entity = $this->typeTable->newEmptyEntity();
-        if (!empty($obj['uname'])) {
-            $uname = $obj['uname'];
-            if ($this->objectsTable->exists(compact('uname'))) {
+        if (!empty($obj['uname']) || !empty($obj['id'])) {
+            $uname = (string)Hash::get($obj, 'uname');
+            $identifier = empty($uname) ? 'id' : 'uname';
+            $conditions = [$identifier => (string)Hash::get($obj, $identifier)];
+            if ($this->objectsTable->exists($conditions)) {
                 /** @var \BEdita\Core\Model\Entity\ObjectEntity $o */
-                $o = $this->objectsTable->find()->where(compact('uname'))->firstOrFail();
+                $o = $this->objectsTable->find()->where($conditions)->firstOrFail();
                 if ($o->type !== $this->type) {
                     throw new BadRequestException(
-                        sprintf('Object uname "%s" already present with another type "%s"', $uname, $o->type)
+                        sprintf(
+                            'Object "%s" already present with another type "%s"',
+                            $conditions[$identifier],
+                            $o->type
+                        )
                     );
                 }
-                $entity = $this->typeTable->get($this->typeTable->getId($uname));
+                $entity = $o->getTable()->find('type', [$this->type])->where($conditions)->firstOrFail();
             }
         }
         $entity = $this->typeTable->patchEntity($entity, $obj);

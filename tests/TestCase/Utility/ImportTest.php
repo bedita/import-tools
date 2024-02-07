@@ -274,7 +274,7 @@ class ImportTest extends TestCase
     public function testSaveObjectWhenExistsWrongType(): void
     {
         $exception = new BadRequestException(
-            sprintf('Object uname "%s" already present with another type "%s"', 'test-uname', 'events')
+            'Object "test-uname" already present with another type "events"'
         );
         $this->expectExceptionObject($exception);
         $import = new Import(TEST_FILES . DS . 'articles1.csv', 'documents', '', false);
