@@ -14,12 +14,12 @@ on:
 
 jobs:
   cs:
-    uses: bedita/github-workflows/.github/workflows/php-cs.yml@v1
+    uses: bedita/github-workflows/.github/workflows/php-cs.yml@v2
     with:
       php_versions: '["7.4", "8.1", "8.2"]'
 
   stan:
-    uses: bedita/github-workflows/.github/workflows/php-stan.yml@v1
+    uses: bedita/github-workflows/.github/workflows/php-stan.yml@v2
     with:
       php_versions: '["7.4", "8.1", "8.2"]'
 
@@ -30,7 +30,7 @@ jobs:
 
     strategy:
       matrix:
-        php-version: [7.4, 8.1, 8.2]
+        php-version: [7.4, 8.1, 8.2, 8.3]
 
     steps:
       - name: 'Checkout current revision'
@@ -74,6 +74,7 @@ jobs:
       - name: 'Export coverage results'
         uses: 'codecov/codecov-action@v3'
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}s
           files: './clover.xml'
           env_vars: PHP_VERSION
 
