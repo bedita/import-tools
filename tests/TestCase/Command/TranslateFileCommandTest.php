@@ -21,9 +21,9 @@ use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
 
 /**
- * {@see \App\Command\TranslateFileCommand} Test Case
+ * {@see \BEdita\ImportTools\Command\TranslateFileCommand} Test Case
  *
- * @coversDefaultClass \App\Command\TranslateFileCommand
+ * @coversDefaultClass \BEdita\ImportTools\Command\TranslateFileCommand
  */
 class TranslateFileCommandTest extends TestCase
 {

@@ -20,9 +20,9 @@ use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
 
 /**
- * {@see \App\Command\TranslateObjectsCommand} Test Case
+ * {@see \BEdita\ImportTools\Command\TranslateObjectsCommand} Test Case
  *
- * @coversDefaultClass \App\Command\TranslateObjectsCommand
+ * @coversDefaultClass \BEdita\ImportTools\Command\TranslateObjectsCommand
  */
 class TranslateObjectsCommandTest extends TestCase
 {
