@@ -136,10 +136,7 @@ class TranslateObjectsCommand extends Command
         if (empty($cfg)) {
             $this->io->abort(sprintf('Translator %s not found', $engine));
         }
-        $class = (string)Hash::get($cfg, 'class');
-        $options = (array)Hash::get($cfg, 'options');
-        $this->translator = new $class();
-        $this->translator->setup($options);
+        $this->setTranslator($cfg);
 
         // parameters: lang from, lang to
         $from = $args->getOption('from');
@@ -157,13 +154,27 @@ class TranslateObjectsCommand extends Command
     }
 
     /**
+     * Set translator engine.
+     *
+     * @param array $cfg The translator configuration
+     * @return void
+     */
+    public function setTranslator(array $cfg): void
+    {
+        $class = (string)Hash::get($cfg, 'class');
+        $options = (array)Hash::get($cfg, 'options');
+        $this->translator = new $class();
+        $this->translator->setup($options);
+    }
+
+    /**
      * Process objects to translate.
      *
      * @param string $from The language to translate from
      * @param string $to The language to translate to
      * @return void
      */
-    private function processObjects(string $from, string $to)
+    public function processObjects(string $from, string $to)
     {
         $conditions = [];
         foreach ($this->objectsIterator($conditions, $from, $to) as $object) {
@@ -189,7 +200,7 @@ class TranslateObjectsCommand extends Command
      * @param string $to The language to translate objects to.
      * @return iterable
      */
-    private function objectsIterator(array $conditions, string $lang, string $to): iterable
+    public function objectsIterator(array $conditions, string $lang, string $to): iterable
     {
         $table = $this->fetchTable('objects');
         $conditions = array_merge(
@@ -231,7 +242,7 @@ class TranslateObjectsCommand extends Command
      * @param string $to The language to translate to
      * @return void
      */
-    protected function translate($object, $from, $to): void
+    public function translate($object, $from, $to): void
     {
         $translatableFields = $this->translatableFields($object->type);
         if (empty($translatableFields)) {
@@ -264,7 +275,7 @@ class TranslateObjectsCommand extends Command
      * @param string $type The object type
      * @return array
      */
-    protected function translatableFields(string $type): array
+    public function translatableFields(string $type): array
     {
         if (array_key_exists($type, $this->translatableFields)) {
             return $this->translatableFields[$type];
@@ -285,7 +296,7 @@ class TranslateObjectsCommand extends Command
      * @param string $to The language to translate to
      * @return string
      */
-    protected function singleTranslation($text, string $from, string $to): string
+    public function singleTranslation($text, string $from, string $to): string
     {
         $response = $this->translator->translate([$text], $from, $to);
         $response = json_decode($response, true);

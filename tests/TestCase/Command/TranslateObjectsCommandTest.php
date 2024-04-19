@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace BEdita\ImportTools\Test\TestCase\Command;
 
+use BEdita\ImportTools\Command\TranslateObjectsCommand;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
@@ -205,9 +206,21 @@ class TranslateObjectsCommandTest extends TestCase
      *
      * @return void
      * @covers ::singleTranslation()
+     * @covers ::setTranslator()
      */
     public function testSingleTranslation(): void
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $text = 'Hello, world!';
+        $from = 'en';
+        $to = 'it';
+        $command = new TranslateObjectsCommand();
+        $command->setTranslator([
+            'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
+            'options' => ['auth_key' => 'secret'],
+        ]);
+        $actual = $command->singleTranslation($text, $from, $to);
+        $expected = sprintf('text: %s, from: %s, to: %s', $text, $from, $to);
+        $this->assertNotEmpty($actual);
+        $this->assertEquals($expected, $actual);
     }
 }
