@@ -135,6 +135,7 @@ class TranslateObjectsCommandTest extends TestCase
      * @dataProvider executeProvider
      * @covers ::buildOptionParser()
      * @covers ::execute()
+     * @covers ::__construct()
      */
     public function testExecute(string $cmd, array $expected, int $error, array $config, array $input): void
     {
