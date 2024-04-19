@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Test\TestCase\Command;
 
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
+use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
 
 /**
@@ -36,14 +37,116 @@ class TranslateObjectsCommandTest extends TestCase
         $this->useCommandRunner();
     }
 
+    public function executeProvider(): array
+    {
+        return [
+            'missing from' => [
+                'translate_objects',
+                ['Missing required option. The `from` option is required and has no default value'],
+                1,
+                null,
+                [],
+            ],
+            'wrong from' => [
+                'translate_objects --from ita',
+                ['"ita" is not a valid value for --from. Please use one of "en, it, de"'],
+                1,
+                null,
+                [],
+            ],
+            'missing to' => [
+                'translate_objects --from en',
+                ['Missing required option. The `to` option is required and has no default value'],
+                1,
+                null,
+                [],
+            ],
+            'wrong to' => [
+                'translate_objects --from en --to ita',
+                ['"ita" is not a valid value for --to. Please use one of "en, it, de"'],
+                1,
+                null,
+                [],
+            ],
+            'missing translator engine setup' => [
+                'translate_objects --from en --to it',
+                ['Translator deepl not found'],
+                1,
+                null,
+                [],
+            ],
+            'continue? n' => [
+                'translate_objects --from en --to it',
+                ['Bye'],
+                1,
+                [
+                    'Translators.deepl' => [
+                        'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
+                        'options' => ['auth_key' => 'secret'],
+                    ],
+                ],
+                ['n'],
+            ],
+            'continue? Y + dry-run yes' => [
+                'translate_objects --from en --to it --dry-run 1',
+                [
+                    'Translating objects from en to it [dry-run yes]',
+                    'Processed 0 objects (0 errors)',
+                    'Done',
+                ],
+                0,
+                [
+                    'Translators.deepl' => [
+                        'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
+                        'options' => ['auth_key' => 'secret'],
+                    ],
+                ],
+                ['Y'],
+            ],
+        ];
+    }
+
     /**
      * Test `execute` with code error on no file
      *
+     * @param string $cmd Command to execute
+     * @param array $expected Expected messages in output
+     * @param int $error Expected exit code
+     * @param array|null $config Configuration to set
+     * @param array $input Input to provide
      * @return void
+     * @dataProvider executeProvider
      * @covers ::buildOptionParser()
      * @covers ::execute()
      */
-    public function testExecute(): void
+    public function testExecute(string $cmd, array $expected, int $error, ?array $config, array $input): void
+    {
+        if ($config !== null) {
+            foreach ($config as $key => $value) {
+                Configure::write($key, $value);
+            }
+        }
+        $this->exec($cmd, $input);
+        if ($error === 0) {
+            $this->assertExitSuccess();
+            foreach ($expected as $exp) {
+                $this->assertOutputContains($exp);
+            }
+        } else {
+            $this->assertExitError();
+            foreach ($expected as $exp) {
+                $this->assertErrorContains($exp);
+            }
+        }
+    }
+
+    /**
+     * Test `processObjects` method
+     *
+     * @return void
+     * @covers ::processObjects()
+     */
+    public function testProcessObjects(): void
     {
         $this->markTestIncomplete('Not implemented yet.');
     }

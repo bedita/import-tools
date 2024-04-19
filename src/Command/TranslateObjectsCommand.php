@@ -44,6 +44,9 @@ class TranslateObjectsCommand extends Command
 {
     use InstanceConfigTrait;
 
+    protected $ok;
+    protected $error;
+    protected $io;
     protected $dryRun;
     protected $defaultStatus;
     protected $translatableFields = [];
@@ -100,6 +103,7 @@ class TranslateObjectsCommand extends Command
      */
     public function execute(Arguments $args, ConsoleIo $io)
     {
+        $this->io = $io;
         $this->dryRun = $args->getOption('dry-run');
 
         // parameter engine
@@ -108,7 +112,7 @@ class TranslateObjectsCommand extends Command
         // setup translator engine
         $cfg = Configure::read(sprintf('Translators.%s', $engine));
         if (empty($cfg)) {
-            $io->abort(sprintf('Translator %s not found', $engine));
+            $this->io->abort(sprintf('Translator %s not found', $engine));
         }
         $class = (string)Hash::get($cfg, 'class');
         $options = (array)Hash::get($cfg, 'options');
@@ -118,30 +122,41 @@ class TranslateObjectsCommand extends Command
         // parameters: lang from, lang to
         $from = $args->getOption('from');
         $to = $args->getOption('to');
-        $to = $this->langsMap['en'];
-        $io->out(sprintf('Translating objects from %s to %s [dry-run %s]', $from, $to, $this->dryRun ? 'yes' : 'no'));
-        if ($io->ask('Do you want to continue [Y/n]?', 'n') !== 'Y') {
-            $io->abort('Bye');
+        $this->io->out(sprintf('Translating objects from %s to %s [dry-run %s]', $from, $to, $this->dryRun ? 'yes' : 'no'));
+        $to = $this->langsMap[$to];
+        if ($this->io->ask('Do you want to continue [Y/n]?', 'n') !== 'Y') {
+            $this->io->abort('Bye');
         }
-
-        $ok = $error = 0;
-        $conditions = [];
+        $this->ok = $this->error = 0;
         $this->defaultStatus = $args->getOption('status');
+        $this->processObjects($from, $to);
+        $this->io->out(sprintf('Processed %d objects (%d errors)', $this->ok + $this->error, $this->error));
+        $this->io->out('Done');
+    }
+
+    /**
+     * Process objects to translate.
+     *
+     * @param string $from The language to translate from
+     * @param string $to The language to translate to
+     * @return void
+     */
+    private function processObjects(string $from, string $to)
+    {
+        $conditions = [];
         foreach ($this->objectsIterator($conditions, $from, $to) as $object) {
             try {
-                $io->verbose(sprintf('Translating object %s', $object->id));
+                $this->io->verbose(sprintf('Translating object %s', $object->id));
                 if (!$this->dryRun) {
                     $this->translate($object, $from, $to);
                 }
-                $io->verbose(sprintf('Translated object %s', $object->id));
-                $ok++;
+                $this->io->verbose(sprintf('Translated object %s', $object->id));
+                $this->ok++;
             } catch (\Exception $e) {
-                $io->error(sprintf('Error translating object %s: %s', $object->id, $e->getMessage()));
-                $error++;
+                $this->io->error(sprintf('Error translating object %s: %s', $object->id, $e->getMessage()));
+                $this->error++;
             }
         }
-        $io->out(sprintf('Processed %d objects (%d errors)', $ok + $error, $error));
-        $io->out('Done');
     }
 
     /**
@@ -192,9 +207,9 @@ class TranslateObjectsCommand extends Command
      * @param \BEdita\Core\Model\Entity\ObjectEntity $object The object to translate
      * @param string $from The language to translate from
      * @param string $to The language to translate to
-     * @return mixed
+     * @return void
      */
-    protected function translate($object, $from, $to)
+    protected function translate($object, $from, $to): void
     {
         $translatableFields = $this->translatableFields($object->type);
         if (empty($translatableFields)) {
