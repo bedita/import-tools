@@ -44,6 +44,18 @@ class TranslateObjectsCommand extends Command
 {
     use InstanceConfigTrait;
 
+    protected $_defaultConfig = [
+        'langsMap' => [
+            'en' => 'en-US',
+            'it' => 'it-IT',
+            'de' => 'de-DE',
+            'es' => 'es-ES',
+            'fr' => 'fr-FR',
+            'pt' => 'pt-PT',
+        ],
+        'status' => 'draft',
+        'dryRun' => false,
+    ];
     protected $ok;
     protected $error;
     protected $io;
@@ -51,29 +63,39 @@ class TranslateObjectsCommand extends Command
     protected $defaultStatus;
     protected $translatableFields = [];
     protected $translator;
-    protected $langsMap = [
-        'en' => 'en-US',
-        'it' => 'it-IT',
-        'de' => 'de-DE',
-    ];
+    protected $langsMap;
+
+    /**
+     * @inheritDoc
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $cfg = (array)Configure::read('TranslateObjects');
+        $cfg = array_merge($this->_defaultConfig, $cfg);
+        $this->defaultStatus = (string)Hash::get($cfg, 'status');
+        $this->dryRun = (int)Hash::get($cfg, 'dryRun');
+        $this->langsMap = (array)Hash::get($cfg, 'langsMap');
+    }
 
     /**
      * @inheritDoc
      */
     public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
+        $langs = array_keys($this->langsMap);
         $parser = parent::buildOptionParser($parser);
         $parser->addOption('from', [
             'short' => 'f',
             'help' => 'Language to translate from',
             'required' => true,
-            'choices' => ['en', 'it', 'de'],
+            'choices' => $langs,
         ]);
         $parser->addOption('to', [
             'short' => 't',
             'help' => 'Language to translate to',
             'required' => true,
-            'choices' => ['en', 'it', 'de'],
+            'choices' => $langs,
         ]);
         $parser->addOption('engine', [
             'short' => 'e',

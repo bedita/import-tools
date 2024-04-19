@@ -37,49 +37,66 @@ class TranslateObjectsCommandTest extends TestCase
         $this->useCommandRunner();
     }
 
+    /**
+     * Data provider for `testExecute` test case.
+     *
+     * @return array
+     */
     public function executeProvider(): array
     {
+        $conf = [
+            'TranslateObjects' => [
+                'langsMap' => [
+                    'en' => 'en-US',
+                    'it' => 'it-IT',
+                    'de' => 'de-DE',
+                ],
+                'status' => 'draft',
+                'dryRun' => false,
+            ],
+        ];
+
         return [
             'missing from' => [
                 'translate_objects',
                 ['Missing required option. The `from` option is required and has no default value'],
                 1,
-                null,
+                $conf,
                 [],
             ],
             'wrong from' => [
                 'translate_objects --from ita',
                 ['"ita" is not a valid value for --from. Please use one of "en, it, de"'],
                 1,
-                null,
+                $conf,
                 [],
             ],
             'missing to' => [
                 'translate_objects --from en',
                 ['Missing required option. The `to` option is required and has no default value'],
                 1,
-                null,
+                $conf,
                 [],
             ],
             'wrong to' => [
                 'translate_objects --from en --to ita',
                 ['"ita" is not a valid value for --to. Please use one of "en, it, de"'],
                 1,
-                null,
+                $conf,
                 [],
             ],
             'missing translator engine setup' => [
                 'translate_objects --from en --to it',
                 ['Translator deepl not found'],
                 1,
-                null,
+                $conf,
                 [],
             ],
             'continue? n' => [
                 'translate_objects --from en --to it',
                 ['Bye'],
                 1,
-                [
+                $conf + [
                     'Translators.deepl' => [
                         'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
                         'options' => ['auth_key' => 'secret'],
@@ -95,7 +112,7 @@ class TranslateObjectsCommandTest extends TestCase
                     'Done',
                 ],
                 0,
-                [
+                $conf + [
                     'Translators.deepl' => [
                         'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
                         'options' => ['auth_key' => 'secret'],
@@ -112,19 +129,17 @@ class TranslateObjectsCommandTest extends TestCase
      * @param string $cmd Command to execute
      * @param array $expected Expected messages in output
      * @param int $error Expected exit code
-     * @param array|null $config Configuration to set
+     * @param array $config Configuration to set
      * @param array $input Input to provide
      * @return void
      * @dataProvider executeProvider
      * @covers ::buildOptionParser()
      * @covers ::execute()
      */
-    public function testExecute(string $cmd, array $expected, int $error, ?array $config, array $input): void
+    public function testExecute(string $cmd, array $expected, int $error, array $config, array $input): void
     {
-        if ($config !== null) {
-            foreach ($config as $key => $value) {
-                Configure::write($key, $value);
-            }
+        foreach ($config as $key => $value) {
+            Configure::write($key, $value);
         }
         $this->exec($cmd, $input);
         if ($error === 0) {
