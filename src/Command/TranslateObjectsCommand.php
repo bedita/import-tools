@@ -14,6 +14,7 @@ declare(strict_types=1);
  */
 namespace BEdita\ImportTools\Command;
 
+use BEdita\Core\Model\Entity\ObjectEntity;
 use BEdita\Core\Utility\LoggedUser;
 use Cake\Command\Command;
 use Cake\Console\Arguments;
@@ -74,7 +75,7 @@ class TranslateObjectsCommand extends Command
         $cfg = (array)Configure::read('TranslateObjects');
         $cfg = array_merge($this->_defaultConfig, $cfg);
         $this->defaultStatus = (string)Hash::get($cfg, 'status');
-        $this->dryRun = (int)Hash::get($cfg, 'dryRun');
+        $this->setDryRun(Hash::get($cfg, 'dryRun') === 1);
         $this->langsMap = (array)Hash::get($cfg, 'langsMap');
     }
 
@@ -123,10 +124,10 @@ class TranslateObjectsCommand extends Command
     /**
      * @inheritDoc
      */
-    public function execute(Arguments $args, ConsoleIo $io)
+    public function execute(Arguments $args, ConsoleIo $io): void
     {
-        $this->io = $io;
-        $this->dryRun = $args->getOption('dry-run');
+        $this->setDryRun($args->getOption('dry-run'));
+        $this->setIo($io);
 
         // parameter engine
         $engine = $args->getOption('engine') ?? 'deepl';
@@ -134,23 +135,75 @@ class TranslateObjectsCommand extends Command
         // setup translator engine
         $cfg = Configure::read(sprintf('Translators.%s', $engine));
         if (empty($cfg)) {
-            $this->io->abort(sprintf('Translator %s not found', $engine));
+            $this->getIo()->abort(sprintf('Translator %s not found', $engine));
         }
         $this->setTranslator($cfg);
 
         // parameters: lang from, lang to
         $from = $args->getOption('from');
         $to = $args->getOption('to');
-        $this->io->out(sprintf('Translating objects from %s to %s [dry-run %s]', $from, $to, $this->dryRun ? 'yes' : 'no'));
+        $this->getIo()->out(sprintf('Translating objects from %s to %s [dry-run %s]', $from, $to, $this->dryRun ? 'yes' : 'no'));
         $to = $this->langsMap[$to];
-        if ($this->io->ask('Do you want to continue [Y/n]?', 'n') !== 'Y') {
-            $this->io->abort('Bye');
+        if ($this->getIo()->ask('Do you want to continue [Y/n]?', 'n') !== 'Y') {
+            $this->getIo()->abort('Bye');
         }
         $this->ok = $this->error = 0;
         $this->defaultStatus = $args->getOption('status');
         $this->processObjects($from, $to);
-        $this->io->out(sprintf('Processed %d objects (%d errors)', $this->ok + $this->error, $this->error));
-        $this->io->out('Done');
+        $this->getIo()->out($this->results());
+        $this->getIo()->out('Done');
+    }
+
+    /**
+     * Set console io.
+     *
+     * @param \Cake\Console\ConsoleIo $io The console io
+     * @return void
+     */
+    public function setIo(ConsoleIo $io): void
+    {
+        $this->io = $io;
+    }
+
+    /**
+     * Get console io.
+     *
+     * @return \Cake\Console\ConsoleIo
+     */
+    public function getIo(): ConsoleIo
+    {
+        return $this->io;
+    }
+
+    /**
+     * Set dry run.
+     *
+     * @param bool $dryRun The dry run flag
+     * @return void
+     */
+    public function setDryRun(bool $dryRun): void
+    {
+        $this->dryRun = $dryRun;
+    }
+
+    /**
+     * Get dry run.
+     *
+     * @return bool
+     */
+    public function getDryRun(): bool
+    {
+        return $this->dryRun;
+    }
+
+    /**
+     * Get results.
+     *
+     * @return string
+     */
+    public function results(): string
+    {
+        return sprintf('Processed %d objects (%d errors)', $this->ok + $this->error, $this->error);
     }
 
     /**
@@ -174,21 +227,34 @@ class TranslateObjectsCommand extends Command
      * @param string $to The language to translate to
      * @return void
      */
-    public function processObjects(string $from, string $to)
+    public function processObjects(string $from, string $to): void
     {
         $conditions = [];
         foreach ($this->objectsIterator($conditions, $from, $to) as $object) {
-            try {
-                $this->io->verbose(sprintf('Translating object %s', $object->id));
-                if (!$this->dryRun) {
-                    $this->translate($object, $from, $to);
-                }
-                $this->io->verbose(sprintf('Translated object %s', $object->id));
-                $this->ok++;
-            } catch (\Exception $e) {
-                $this->io->error(sprintf('Error translating object %s: %s', $object->id, $e->getMessage()));
-                $this->error++;
+            $this->processObject($object, $from, $to);
+        }
+    }
+
+    /**
+     * Process single object.
+     *
+     * @param \BEdita\Core\Model\Entity\ObjectEntity $object The object to translate
+     * @param string $from The language to translate from
+     * @param string $to The language to translate to
+     * @return void
+     */
+    public function processObject(ObjectEntity $object, string $from, string $to): void
+    {
+        try {
+            $this->getIo()->verbose(sprintf('Translating object %s', $object->id));
+            if (!$this->dryRun) {
+                $this->translate($object, $from, $to);
             }
+            $this->getIo()->verbose(sprintf('Translated object %s', $object->id));
+            $this->ok++;
+        } catch (\Exception $e) {
+            $this->getIo()->error(sprintf('Error translating object %s: %s', $object->id, $e->getMessage()));
+            $this->error++;
         }
     }
 

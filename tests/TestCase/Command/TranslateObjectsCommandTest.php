@@ -15,7 +15,9 @@ declare(strict_types=1);
 
 namespace BEdita\ImportTools\Test\TestCase\Command;
 
+use BEdita\Core\Model\Entity\Location;
 use BEdita\ImportTools\Command\TranslateObjectsCommand;
+use Cake\Console\ConsoleIo;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
@@ -162,10 +164,44 @@ class TranslateObjectsCommandTest extends TestCase
      *
      * @return void
      * @covers ::processObjects()
+     * @covers ::results()
      */
     public function testProcessObjects(): void
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $from = 'en';
+        $to = 'it';
+        $command = new TranslateObjectsCommand();
+        $command->processObjects($from, $to);
+        $actual = $command->results();
+        $expected = 'Processed 0 objects (0 errors)';
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * Test `processObject` method
+     *
+     * @return void
+     * @covers ::processObject()
+     * @covers ::results()
+     * @covers ::getDryRun()
+     * @covers ::setDryRun()
+     * @covers ::getIo()
+     * @covers ::setIo()
+     */
+    public function testProcessObjectDryRun(): void
+    {
+        $from = 'en';
+        $to = 'it';
+        $object = new Location();
+        $object->set('id', 999);
+        $command = new TranslateObjectsCommand();
+        $command->setIo(new ConsoleIo());
+        $command->setDryRun(true);
+        $command->processObject($object, $from, $to);
+        $actual = $command->results();
+        $expected = 'Processed 1 objects (0 errors)';
+        $this->assertEquals($expected, $actual);
+        $this->assertTrue($command->getDryRun());
     }
 
     /**
