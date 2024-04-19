@@ -60,7 +60,7 @@ class TranslateFileCommandTest extends TestCase
      */
     public function testExecuteNoTranslator(): void
     {
-        $input = sprintf('%s/tests/files/input.txt', ROOT);
+        $input = sprintf('%s/files/input.txt', ROOT);
         $this->exec('translate_file -i ' . $input . ' -o output.txt -f en -t it -e mytranslator');
         $this->assertErrorContains('No translator engine "mytranslator" is set in configuration');
     }
@@ -74,10 +74,10 @@ class TranslateFileCommandTest extends TestCase
      */
     public function testExecute(): void
     {
-        $input = sprintf('%s/tests/files/input.txt', ROOT);
-        $output = sprintf('%s/tests/files/output.txt', ROOT);
+        $input = sprintf('%s/files/input.txt', ROOT);
+        $output = sprintf('%s/files/output.txt', ROOT);
         Configure::write('Translators.dummy', [
-            'class' => 'App\Test\TestCase\Core\I18n\DummyTranslator',
+            'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
             'options' => ['auth_key' => 'secret'],
         ]);
         $this->exec('translate_file -i ' . $input . ' -o ' . $output . ' -f en -t it -e dummy');
