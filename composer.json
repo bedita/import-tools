@@ -21,12 +21,12 @@
     ],
     "require": {
         "php": ">= 7.4",
-        "cakephp/cakephp": "^4.4"
+        "cakephp/cakephp": "^4.4",
+        "bedita/api": "^5.22",
+        "bedita/core": "^5.22",
+        "bedita/i18n": "^4.4"
     },
     "require-dev": {
-        "bedita/api": "^5.21",
-        "bedita/core": "^5.21",
-        "bedita/i18n": "^4.4",
         "cakephp/cakephp-codesniffer": "~4.5",
         "phpstan/phpstan": "^1.8",
         "phpstan/extension-installer": "^1.0",
