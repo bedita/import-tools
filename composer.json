@@ -24,8 +24,8 @@
         "cakephp/cakephp": "^4.4"
     },
     "require-dev": {
-        "bedita/core": "^5.14",
-        "bedita/api": "^5.14",
+        "bedita/core": "^5.21",
+        "bedita/api": "^5.21",
         "cakephp/cakephp-codesniffer": "~4.5",
         "phpstan/phpstan": "^1.8",
         "phpstan/extension-installer": "^1.0",
