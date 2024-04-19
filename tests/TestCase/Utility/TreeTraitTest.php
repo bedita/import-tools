@@ -62,6 +62,9 @@ class TreeTraitTest extends TestCase
         LoggedUser::setUserAdmin();
     }
 
+    /**
+     * @inheritDoc
+     */
     public function tearDown(): void
     {
         $this->getTableLocator()->clear();
@@ -73,7 +76,6 @@ class TreeTraitTest extends TestCase
      * Test `setParent` method
      *
      * @return void
-     * @covers ::setParent()
      */
     public function testSetParent(): void
     {

@@ -52,7 +52,6 @@ class ImportTest extends TestCase
      * Test constructor
      *
      * @return void
-     * @covers ::__construct()
      */
     public function testConstructor(): void
     {
@@ -140,7 +139,6 @@ class ImportTest extends TestCase
      * @param array $expected Expected
      * @return void
      * @dataProvider saveObjectsProvider
-     * @covers ::saveObjects()
      */
     public function testSaveObjects(string $filename, string $type, string $parent, bool $dryrun, array $expected): void
     {
@@ -206,7 +204,6 @@ class ImportTest extends TestCase
      * @param array $expected Expected
      * @return void
      * @dataProvider saveObjectProvider
-     * @covers ::saveObject()
      */
     public function testSaveObject(string $f, string $t, string $p, bool $dr, array $data, array $expected): void
     {
@@ -238,7 +235,6 @@ class ImportTest extends TestCase
      *
      * @return void
      * @dataProvider saveObjectProvider
-     * @covers ::saveObject()
      */
     public function testSaveObjectWhenExists(): void
     {
@@ -269,7 +265,6 @@ class ImportTest extends TestCase
      *
      * @return void
      * @dataProvider saveObjectProvider
-     * @covers ::saveObject()
      */
     public function testSaveObjectWhenExistsWrongType(): void
     {
@@ -365,7 +360,6 @@ class ImportTest extends TestCase
      * @param array $exp Expected
      * @return void
      * @dataProvider saveTranslationsWithErrorProvider
-     * @covers ::saveTranslations()
      */
     public function testSaveTranslationsWithError(string $f, string $t, string $p, bool $dr, array $exp): void
     {
@@ -428,7 +422,6 @@ class ImportTest extends TestCase
      * @param array $exp Expected
      * @return void
      * @dataProvider saveTranslationsProvider
-     * @covers ::saveTranslations()
      */
     public function testSaveTranslations(string $arf, string $trf, bool $trdr, array $exp): void
     {
@@ -477,8 +470,6 @@ class ImportTest extends TestCase
      *
      * @return void
      * @dataProvider saveTranslationProvider
-     * @covers ::saveTranslation()
-     * @covers ::translatedFields()
      */
     public function testSaveTranslation(string $f, bool $dr, array $data, array $expected): void
     {
@@ -544,7 +535,6 @@ class ImportTest extends TestCase
      *
      * @return void
      * @dataProvider translatedFieldsProvider
-     * @covers ::translatedFields()
      */
     public function testTranslatedFields(array $data, array $expected): void
     {
