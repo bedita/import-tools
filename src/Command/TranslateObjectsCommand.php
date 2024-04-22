@@ -48,10 +48,10 @@ class TranslateObjectsCommand extends Command
     protected $_defaultConfig = [
         'langsMap' => [
             'en' => 'en-US',
-            'it' => 'it-IT',
-            'de' => 'de-DE',
-            'es' => 'es-ES',
-            'fr' => 'fr-FR',
+            'it' => 'it',
+            'de' => 'de',
+            'es' => 'es',
+            'fr' => 'fr',
             'pt' => 'pt-PT',
         ],
         'status' => 'draft',
@@ -65,6 +65,7 @@ class TranslateObjectsCommand extends Command
     protected $translatableFields = [];
     protected $translator;
     protected $langsMap;
+    protected $limit;
 
     /**
      * @inheritDoc
@@ -117,6 +118,10 @@ class TranslateObjectsCommand extends Command
             'boolean' => true,
             'default' => false,
         ]);
+        $parser->addOption('limit', [
+            'short' => 'l',
+            'help' => 'Limit number of objects to translate',
+        ]);
 
         return $parser;
     }
@@ -142,7 +147,16 @@ class TranslateObjectsCommand extends Command
         // parameters: lang from, lang to
         $from = $args->getOption('from');
         $to = $args->getOption('to');
-        $this->getIo()->out(sprintf('Translating objects from %s to %s [dry-run %s]', $from, $to, $this->dryRun ? 'yes' : 'no'));
+        $this->limit = $args->getOption('limit') ?? null;
+        $this->getIo()->out(
+            sprintf(
+                'Translating objects from %s to %s [dry-run %s / limit %s]',
+                $from,
+                $to,
+                $this->dryRun ? 'yes' : 'no',
+                $this->limit ? sprintf('limit %s', $this->limit) : 'unlimited'
+            )
+        );
         $to = $this->langsMap[$to];
         if ($this->getIo()->ask('Do you want to continue [Y/n]?', 'n') !== 'Y') {
             $this->getIo()->abort('Bye');
@@ -231,6 +245,9 @@ class TranslateObjectsCommand extends Command
     {
         $conditions = [];
         foreach ($this->objectsIterator($conditions, $from, $to) as $object) {
+            if ($this->limit !== null && ($this->ok + $this->error >= $this->limit)) {
+                break;
+            }
             $this->processObject($object, $from, $to);
         }
     }
