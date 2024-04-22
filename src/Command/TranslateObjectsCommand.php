@@ -344,6 +344,9 @@ class TranslateObjectsCommand extends Command
             $fields[] = $field;
             $values[] = $object->get($field);
         }
+        if (empty($fields)) {
+            return;
+        }
         $tr = $this->multiTranslation($values, $from, $to);
         foreach ($tr as $i => $t) {
             $translatedFields[$fields[$i]] = $t;
