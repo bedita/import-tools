@@ -249,7 +249,6 @@ class TranslateObjectsCommand extends Command
             if ($this->limit !== null && ($this->ok + $this->error >= $this->limit)) {
                 break;
             }
-            $object = $this->fetchTable($object->type)->find()->where(['id' => $object->id])->firstOrFail();
             $this->processObject($object, $from, $to);
         }
     }
@@ -329,6 +328,7 @@ class TranslateObjectsCommand extends Command
      */
     public function translate($object, $from, $to): void
     {
+        $object = $this->fetchTable($object->type)->find()->where(['id' => $object->id])->firstOrFail();
         $translatableFields = $this->translatableFields($object->type);
         if (empty($translatableFields)) {
             return;
