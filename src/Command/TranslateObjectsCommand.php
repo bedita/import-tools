@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Command;
 
 use BEdita\Core\Model\Entity\ObjectEntity;
+use BEdita\Core\Utility\JsonSchema;
 use BEdita\Core\Utility\LoggedUser;
 use Cake\Command\Command;
 use Cake\Console\Arguments;
@@ -248,6 +249,7 @@ class TranslateObjectsCommand extends Command
             if ($this->limit !== null && ($this->ok + $this->error >= $this->limit)) {
                 break;
             }
+            $object = $this->fetchTable($object->type)->find()->where(['id' => $object->id])->firstOrFail();
             $this->processObject($object, $from, $to);
         }
     }
@@ -332,11 +334,17 @@ class TranslateObjectsCommand extends Command
             return;
         }
         $translatedFields = [];
+        $fields = $values = [];
         foreach ($translatableFields as $field) {
             if (empty($object->get($field))) {
                 continue;
             }
-            $translatedFields[$field] = $this->singleTranslation($object->get($field), $from, $to);
+            $fields[] = $field;
+            $values[] = $object->get($field);
+        }
+        $tr = $this->multiTranslation($values, $from, $to);
+        foreach ($tr as $i => $t) {
+            $translatedFields[$fields[$i]] = $t;
         }
         $translation = [
             'object_id' => $object->id,
@@ -363,9 +371,7 @@ class TranslateObjectsCommand extends Command
         if (array_key_exists($type, $this->translatableFields)) {
             return $this->translatableFields[$type];
         }
-        /** @var \BEdita\Core\Model\Entity\ObjectType $objectType */
-        $objectType = $this->fetchTable('ObjectTypes')->find()->where(['name' => $type])->firstOrFail();
-        $schema = $objectType->get('schema');
+        $schema = JsonSchema::typeSchema($type);
         $this->translatableFields[$type] = (array)Hash::get($schema, 'translatable');
 
         return $this->translatableFields[$type];
@@ -385,5 +391,21 @@ class TranslateObjectsCommand extends Command
         $response = json_decode($response, true);
 
         return (string)Hash::get($response, 'translation.0');
+    }
+
+    /**
+     * Translate multiple texts.
+     *
+     * @param array $texts The texts to translate
+     * @param string $from The language to translate from
+     * @param string $to The language to translate to
+     * @return array
+     */
+    public function multiTranslation($texts, string $from, string $to): array
+    {
+        $response = $this->translator->translate($texts, $from, $to);
+        $response = json_decode($response, true);
+
+        return (array)Hash::get($response, 'translation');
     }
 }

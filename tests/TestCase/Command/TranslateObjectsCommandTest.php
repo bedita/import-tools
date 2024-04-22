@@ -259,4 +259,30 @@ class TranslateObjectsCommandTest extends TestCase
         $this->assertNotEmpty($actual);
         $this->assertEquals($expected, $actual);
     }
+
+    /**
+     * Test `multiTranslation` method
+     *
+     * @return void
+     * @covers ::multiTranslation()
+     * @covers ::setTranslator()
+     */
+    public function testMultipleTranslation(): void
+    {
+        $texts = ['Hello', 'world'];
+        $from = 'en';
+        $to = 'it';
+        $command = new TranslateObjectsCommand();
+        $command->setTranslator([
+            'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
+            'options' => ['auth_key' => 'secret'],
+        ]);
+        $actual = $command->multiTranslation($texts, $from, $to);
+        $expected = [
+            sprintf('text: %s, from: %s, to: %s', $texts[0], $from, $to),
+            sprintf('text: %s, from: %s, to: %s', $texts[1], $from, $to),
+        ];
+        $this->assertNotEmpty($actual);
+        $this->assertEquals($expected, $actual);
+    }
 }
