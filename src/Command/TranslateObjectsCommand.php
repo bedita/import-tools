@@ -328,8 +328,10 @@ class TranslateObjectsCommand extends Command
      */
     public function translate($object, $from, $to): void
     {
-        $object = $this->fetchTable($object->type)->find()->where(['id' => $object->id])->firstOrFail();
-        $translatableFields = $this->translatableFields($object->type);
+        $id = $object->id;
+        $type = $object->type;
+        $object = $this->fetchTable($type)->find()->where(compact('id'))->firstOrFail();
+        $translatableFields = $this->translatableFields($type);
         if (empty($translatableFields)) {
             return;
         }
@@ -347,7 +349,7 @@ class TranslateObjectsCommand extends Command
             $translatedFields[$fields[$i]] = $t;
         }
         $translation = [
-            'object_id' => $object->id,
+            'object_id' => $id,
             'lang' => array_flip($this->langsMap)[$to],
             'translated_fields' => json_encode($translatedFields),
             'status' => $this->defaultStatus,
