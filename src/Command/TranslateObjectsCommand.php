@@ -123,6 +123,10 @@ class TranslateObjectsCommand extends Command
             'short' => 'l',
             'help' => 'Limit number of objects to translate',
         ]);
+        $parser->addOption('object-type', [
+            'short' => 'o',
+            'help' => 'Object type to translate',
+        ]);
 
         return $parser;
     }
@@ -149,13 +153,15 @@ class TranslateObjectsCommand extends Command
         $from = $args->getOption('from');
         $to = $args->getOption('to');
         $this->limit = $args->getOption('limit') ?? null;
+        $this->type = $args->getOption('object-type') ?? null;
         $this->getIo()->out(
             sprintf(
-                'Translating objects from %s to %s [dry-run %s / limit %s]',
+                'Translating objects from %s to %s [dry-run %s / limit %s / %s]',
                 $from,
                 $to,
                 $this->dryRun ? 'yes' : 'no',
-                $this->limit ? sprintf('limit %s', $this->limit) : 'unlimited'
+                $this->limit ? sprintf('limit %s', $this->limit) : 'unlimited',
+                $this->type ? sprintf('type %s', $this->type) : 'all types'
             )
         );
         $to = $this->langsMap[$to];
@@ -287,6 +293,9 @@ class TranslateObjectsCommand extends Command
     public function objectsIterator(array $conditions, string $lang, string $to): iterable
     {
         $table = $this->fetchTable('objects');
+        if ($this->type !== null) {
+            $conditions[$table->aliasField('object_type_id')] = $table->objectType($this->type)->id;
+        }
         $conditions = array_merge(
             $conditions,
             [
@@ -336,20 +345,30 @@ class TranslateObjectsCommand extends Command
             return;
         }
         $translatedFields = [];
-        $fields = $values = [];
+        $fields = $values = $jsonFields = $jsonValues = [];
         foreach ($translatableFields as $field) {
             if (empty($object->get($field))) {
                 continue;
             }
-            $fields[] = $field;
-            $values[] = $object->get($field);
+            $val = $object->get($field);
+            if (is_array($val)) {
+                $jsonFields[] = $field;
+                $jsonValues[] = json_encode($val);
+            } else {
+                $fields[] = $field;
+                $values[] = $val;
+            }
         }
-        if (empty($fields)) {
+        if (empty($fields) && empty($jsonFields)) {
             return;
         }
         $tr = $this->multiTranslation($values, $from, $to);
         foreach ($tr as $i => $t) {
             $translatedFields[$fields[$i]] = $t;
+        }
+        $tr = $this->multiTranslation($jsonValues, $from, $to);
+        foreach ($tr as $i => $t) {
+            $translatedFields[$jsonFields[$i]] = json_decode($t, true);
         }
         $translation = [
             'object_id' => $id,
