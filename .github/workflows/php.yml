@@ -62,24 +62,24 @@ jobs:
         run: 'composer install --prefer-dist --no-interaction'
 
       - name: 'Run PHPUnit with coverage'
-        run: 'vendor/bin/phpunit --coverage-clover=${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.php-version }}-clover.xml'
+        run: 'vendor/bin/phpunit --coverage-clover=${{ matrix.php-version }}-${{ strategy.job-index }}-clover.xml'
 
       - name: Check test coverage
         id: test-coverage
         uses: johanvanhelden/gha-clover-test-coverage-check@v1
         with:
           percentage: '80'
-          filename: '${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.php-version }}-clover.xml'
+          filename: '${{ matrix.php-version }}-${{ strategy.job-index }}-clover.xml'
 
       - name: 'Export coverage results'
         uses: 'codecov/codecov-action@v3'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}s
-          files: './${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.php-version }}-clover.xml'
+          files: './${{ matrix.php-version }}-${{ strategy.job-index }}-clover.xml'
           env_vars: PHP_VERSION
 
       - name: 'Archive code coverage results'
-        uses: 'actions/upload-artifact@v4'
+        uses: 'actions/upload-artifact@v3'
         with:
           name: 'PHP ${{ matrix.php }}'
-          path: '${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.php-version }}-clover.xml'
+          path: '${{ matrix.php-version }}-${{ strategy.job-index }}-clover.xml'
