@@ -67,6 +67,7 @@ class TranslateObjectsCommand extends Command
     protected $translator;
     protected $langsMap;
     protected $limit;
+    protected $type;
 
     /**
      * @inheritDoc
