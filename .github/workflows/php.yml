@@ -81,5 +81,5 @@ jobs:
       - name: 'Archive code coverage results'
         uses: 'actions/upload-artifact@v4'
         with:
-          name: 'PHP ${{ matrix.php }}'
+          name: 'PHP-${{ matrix.php }}-strategy-job-index-${{ strategy.job-index }}'
           path: "${{ matrix.php-version }}-${{ strategy.job-index }}-clover.xml"
