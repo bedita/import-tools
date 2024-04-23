@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Command;
 
 use BEdita\Core\Model\Entity\ObjectEntity;
+use BEdita\Core\Model\Table\ObjectsTable;
 use BEdita\Core\Utility\JsonSchema;
 use BEdita\Core\Utility\LoggedUser;
 use Cake\Command\Command;
@@ -293,6 +294,7 @@ class TranslateObjectsCommand extends Command
      */
     public function objectsIterator(array $conditions, string $lang, string $to): iterable
     {
+        /** @var \BEdita\Core\Model\Table\ObjectsTable $table */
         $table = $this->fetchTable('objects');
         if ($this->type !== null) {
             $conditions[$table->aliasField('object_type_id')] = $table->objectType($this->type)->id;
