@@ -18,6 +18,25 @@ use Cake\Core\InstanceConfigTrait;
 
 /**
  * Trait for share Csv stuff.
+ *
+ * This provides `readCsv` method to progressively read a csv file line by line.
+ *
+ * Usage example:
+ * ```php
+ * use BEdita\ImportTools\Utility\CsvTrait;
+ *
+ * class MyImporter
+ * {
+ *     use CsvTrait;
+ *
+ *     public function import(string $filename): void
+ *     {
+ *         foreach ($this->readCsv($filename) as $obj) {
+ *             // process $obj
+ *         }
+ *     }
+ * }
+ * ```
  */
 trait CsvTrait
 {

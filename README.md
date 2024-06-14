@@ -23,11 +23,193 @@ The recommended way to install composer packages is:
 composer require bedita/import-tools
 ```
 
-## ImportCommand
+## Commands
+
+### ImportCommand
 
 This command provides a tool to import data from csv file.
 
+Usage examples:
+```bash
+# basic
+$ bin/cake import --file documents.csv --type documents
+$ bin/cake import -f documents.csv -t documents
+
+# dry-run
+$ bin/cake import --file articles.csv --type articles --dryrun yes
+$ bin/cake import -f articles.csv -t articles -d yes
+
+# destination folder
+$ bin/cake import --file news.csv --type news --parent my-folder-uname
+$ bin/cake import -f news.csv -t news -p my-folder-uname
+
+# translations
+$ bin/cake import --file translations.csv --type translations
+$ bin/cake import -f translations.csv -t translations
+```
+
+### TranslateFileCommand
+
+This command provides a tool to translate the content of a file from one language to another, using a translator service (i.e., set in `config/app_local.php`).
+
+Translator service configuration example:
+```php
+'Translators' => [
+    'deepl' => [
+        'name' => 'DeepL',
+        'class' => '\BEdita\I18n\Deepl\Core\Translator',
+        'options' => [
+            'auth_key' => '************',
+        ],
+    ],
+]
+```
+
 Usage example:
 ```bash
-bin/cake import --file input.csv --type documents --parent my-root-folder-uname --dryrun y
+$ bin/cake translate_file \
+  --input articles-en.txt \
+  --output articles-it.txt \
+  --from en \
+  --to it \
+  --translator deepl
+```
+
+### TranslateObjectsCommand
+
+This command provides a tool to translate the content of objects from one language to another, using a translator service (i.e., set in `config/app_local.php`, as described above).
+
+Usage examples:
+```bash
+# basic
+$ bin/cake translate_objects \
+  --from en \
+  --to it \
+  --engine deepl
+
+# dry-run
+$ bin/cake translate_objects \
+  --from en \
+  --to it \
+  --engine deepl \
+  --dry-run yes
+
+# limit
+$ bin/cake translate_objects \
+  --from en \
+  --to it \
+  --engine deepl \
+  --limit 10
+
+# status
+$ bin/cake translate_objects \
+  --from en \
+  --to it \
+  --engine deepl \
+  --status draft
+
+# type
+$ bin/cake translate_objects \
+  --from en \
+  --to it \
+  --engine deepl \
+  --type articles
+```
+
+## Utilities
+
+You can find some utility classes in `src/Utility` folder.
+
+### CsvTrait
+
+This trait provides `readCsv` method to progressively read a csv file line by line.
+
+Usage example:
+```php
+use BEdita\ImportTools\Utility\CsvTrait;
+
+class MyImporter
+{
+    use CsvTrait;
+
+    public function import(string $filename): void
+    {
+        foreach ($this->readCsv($filename) as $obj) {
+            // process $obj
+        }
+    }
+}
+```
+
+### FileTrait
+
+This trait provides `readFileStream` method to open "read-only" file stream (you can use local filesystem or adapter).
+
+Usage example:
+```php
+use BEdita\ImportTools\Utility\FileTrait;
+
+class MyImporter
+{
+    use FileTrait;
+
+    public function read(string $file): void
+    {
+        [$fh, $close] = $this->readFileStream($path);
+
+        try {
+            flock($fh, LOCK_SH);
+            // do your stuff
+        } finally {
+            $close();
+        }
+    }
+}
+```
+
+### TreeTrait
+
+This trait provides `setParent` method to save the parent for a specified entity.
+
+Usage example:
+```php
+use BEdita\ImportTools\Utility\TreeTrait;
+
+class MyImporter
+{
+    use TreeTrait;
+
+    public function import(string $filename, string $destination): void
+    {
+        foreach ($this->readCsv($filename) as $obj) {
+            $this->setParent($obj, $destination);
+        }
+    }
+}
+```
+
+### Import
+
+This class provides functions to import data from csv files into BEdita.
+
+Public methods are:
+
+- `saveObjects`: read data from csv and save objects
+- `saveObject`: save a single object
+- `saveTranslations`: read data from csv and save translations
+- `saveTranslation`: save a single translation
+- `translatedFields`: get translated fields for a given object
+
+Usage example:
+```php
+use BEdita\ImportTools\Utility\Import;
+
+class MyImporter
+{
+    public function import(string $filename, string $type, ?string $parent, ?bool $dryrun): void
+    {
+        $import = new Import($filename, $type, $parent, $dryrun);
+        $import->saveObjects();
+    }
+}
 ```

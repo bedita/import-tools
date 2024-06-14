@@ -20,6 +20,25 @@ use BEdita\Core\Model\Entity\ObjectEntity;
 
 /**
  * Trait for share Tree stuff.
+ *
+ * This provides `setParent` method to save the parent for a specified entity.
+ *
+ * Usage example:
+ * ```php
+ * use BEdita\ImportTools\Utility\TreeTrait;
+ *
+ * class MyImporter
+ * {
+ *     use TreeTrait;
+ *
+ *     public function import(string $filename, string $destination): void
+ *     {
+ *         foreach ($this->readCsv($filename) as $obj) {
+ *             $this->setParent($obj, $destination);
+ *         }
+ *     }
+ * }
+ * ```
  */
 trait TreeTrait
 {

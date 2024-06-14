@@ -7,6 +7,30 @@ use BEdita\Core\Filesystem\FilesystemRegistry;
 
 /**
  * Utilities to help reading files from either the local filesystem or an adapter configured in BEdita.
+ *
+ * This provides `readFileStream` method to open "read-only" file stream (you can use local filesystem or adapter).
+ *
+ * Usage example:
+ * ```php
+ * use BEdita\ImportTools\Utility\FileTrait;
+ *
+ * class MyImporter
+ * {
+ *     use FileTrait;
+ *
+ *     public function read(string $file): void
+ *     {
+ *         [$fh, $close] = $this->readFileStream($path);
+ *
+ *         try {
+ *             flock($fh, LOCK_SH);
+ *             // do your stuff
+ *         } finally {
+ *             $close();
+ *         }
+ *     }
+ * }
+ * ```
  */
 trait FileTrait
 {

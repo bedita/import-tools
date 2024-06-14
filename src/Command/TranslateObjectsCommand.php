@@ -28,6 +28,17 @@ use Cake\Utility\Hash;
 
 /**
  * TranslateObjects command.
+ *
+ * $ bin/cake translate_objects --help
+ * $ bin/cake translate_objects \
+ *  --from source_language \
+ *  --to dest_language \
+ *  --engine translator_engine \
+ * [--status translation_status] \
+ * [--dry-run] \
+ * [--limit number_of_objects] \
+ * [--object-type object_type]
+ *
  * Translate objects from a language to another using a translator engine.
  * The translator engine is defined in the configuration.
  * The configuration must contain the translator engine class and options

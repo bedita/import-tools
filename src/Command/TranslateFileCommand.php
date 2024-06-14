@@ -23,7 +23,16 @@ use Cake\Core\Configure;
 
 /**
  * TranslateFile command.
- * Perform from a file using a translator engine.
+ *
+ * $ bin/cake translate_file --help
+ * $ bin/cake translate_file \
+ *   -i input_file \
+ *   -o output_file \
+ *   -f source_language \
+ *   -t dest_language \
+ *   -e translator_engine
+ *
+ * Perform translation from a file using a translator engine.
  * The input file is translated from a source language to a destination language using a translator engine.
  * The output file is created with the translated content.
  * The translator engine is defined in the configuration.
