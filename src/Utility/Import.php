@@ -22,6 +22,33 @@ use Cake\Log\LogTrait;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\Utility\Hash;
 
+/**
+ * Import utility
+ *
+ * This class provides functions to import data from csv files into BEdita.
+ *
+ * Public methods are:
+ *
+ * - `saveObjects`: read data from csv and save objects
+ * - `saveObject`: save a single object
+ * - `saveTranslations`: read data from csv and save translations
+ * - `saveTranslation`: save a single translation
+ * - `translatedFields`: get translated fields for a given object
+ *
+ * Usage example:
+ * ```php
+ * use BEdita\ImportTools\Utility\Import;
+ *
+ * class MyImporter
+ * {
+ *     public function import(string $filename, string $type, ?string $parent, ?bool $dryrun): void
+ *     {
+ *         $import = new Import($filename, $type, $parent, $dryrun);
+ *         $import->saveObjects();
+ *     }
+ * }
+ * ```
+ */
 class Import
 {
     use CsvTrait;
