@@ -14,10 +14,12 @@ declare(strict_types=1);
  */
 namespace BEdita\ImportTools\Test\TestCase\Command;
 
+use BEdita\Core\Model\Table\UsersTable;
 use BEdita\Core\Utility\LoggedUser;
 use BEdita\ImportTools\Command\AnonymizeUsersCommand;
 use Cake\Console\ConsoleIo;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
+use Cake\Datasource\EntityInterface;
 use Cake\TestSuite\TestCase;
 use Faker\Factory;
 
@@ -171,5 +173,43 @@ class AnonymizeUsersCommandTest extends TestCase
         $this->assertEquals(0, $errors);
         $this->assertEquals(1, $processed);
         $this->assertEquals(1, $saved);
+    }
+
+    /**
+     * Test anonymize exception
+     *
+     * @return void
+     * @covers ::anonymize()
+     */
+    public function testAnonymizeException(): void
+    {
+        LoggedUser::setUserAdmin();
+        $faker = Factory::create('it_IT');
+        $processed = $saved = $errors = 0;
+        /** @var \BEdita\Core\Model\Table\UsersTable $table */
+        $table = $this->fetchTable('Users');
+        /** @var \BEdita\Core\Model\Entity\User $user */
+        $user = $table->newEmptyEntity();
+        $myTable = new class () extends UsersTable
+        {
+            public function aliasField(string $field): string
+            {
+                return $field;
+            }
+
+            public function exists($conditions): bool
+            {
+                return false;
+            }
+
+            public function saveOrFail($entity, $options = []): EntityInterface
+            {
+                throw new \Cake\Datasource\Exception\RecordNotFoundException();
+            }
+        };
+        $this->command->anonymize($faker, $user, $myTable, new ConsoleIo(), $processed, $saved, $errors);
+        $this->assertEquals(1, $errors);
+        $this->assertEquals(1, $processed);
+        $this->assertEquals(0, $saved);
     }
 }
