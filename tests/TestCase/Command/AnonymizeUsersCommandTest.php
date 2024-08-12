@@ -14,6 +14,7 @@ declare(strict_types=1);
  */
 namespace BEdita\ImportTools\Test\TestCase\Command;
 
+use BEdita\Core\Utility\LoggedUser;
 use BEdita\ImportTools\Command\AnonymizeUsersCommand;
 use Cake\Console\ConsoleIo;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
@@ -36,9 +37,14 @@ class AnonymizeUsersCommandTest extends TestCase
         'plugin.BEdita/Core.ObjectTypes',
         'plugin.BEdita/Core.PropertyTypes',
         'plugin.BEdita/Core.Properties',
+        'plugin.BEdita/Core.Relations',
+        'plugin.BEdita/Core.RelationTypes',
         'plugin.BEdita/Core.Objects',
+        'plugin.BEdita/Core.ObjectRelations',
+        'plugin.BEdita/Core.Locations',
+        'plugin.BEdita/Core.Media',
+        'plugin.BEdita/Core.Profiles',
         'plugin.BEdita/Core.Users',
-        'plugin.BEdita/Core.Trees',
     ];
 
     /**
@@ -108,12 +114,41 @@ class AnonymizeUsersCommandTest extends TestCase
      */
     public function testExecute(): void
     {
-        $this->exec('anonymize_users');
+        LoggedUser::setUserAdmin();
+        $table = $this->fetchTable('Users');
+        $user = $table->newEmptyEntity();
+        $user->username = 'gustavo';
+        $user->email = 'gustavo@bedita.net';
+        $user->name = 'Gustavo';
+        $user->surname = 'Supporto';
+        $user->status = 'on';
+        $table->saveOrFail($user);
+        $originalUsers = $table->find()->toArray();
+        $this->exec('anonymize_users --preserve ' . $user->id);
         $this->assertOutputContains('Start');
-        $this->assertOutputContains('Users processed: 0');
-        $this->assertOutputContains('Users saved: 0');
+        $this->assertOutputContains('Users processed: 1');
+        $this->assertOutputContains('Users saved: 1');
         $this->assertOutputContains('Users not saved: 0');
         $this->assertOutputContains('Done.');
+        $users = $table->find()->toArray();
+        foreach ($users as $user) {
+            $tmp = array_filter($originalUsers, function ($originalUser) use ($user) {
+                return $originalUser->id === $user->id;
+            });
+            $originalUser = array_values($tmp)[0];
+            if ($originalUser->username === 'gustavo' || $originalUser->id === 1) {
+                $this->assertEquals($originalUser->name, $user->name);
+                $this->assertEquals($originalUser->surname, $user->surname);
+                $this->assertEquals($originalUser->username, $user->username);
+                $this->assertEquals($originalUser->email, $user->email);
+                $this->assertEquals($originalUser->status, $user->status);
+                continue;
+            }
+            $this->assertNotEquals($originalUser->name, $user->name);
+            $this->assertNotEquals($originalUser->surname, $user->surname);
+            $this->assertNotEquals($originalUser->username, $user->username);
+            $this->assertNotEquals($originalUser->email, $user->email);
+        }
     }
 
     /**
@@ -124,6 +159,7 @@ class AnonymizeUsersCommandTest extends TestCase
      */
     public function testAnonymize(): void
     {
+        LoggedUser::setUserAdmin();
         $faker = Factory::create('it_IT');
         $processed = $saved = $errors = 0;
         /** @var \BEdita\Core\Model\Table\UsersTable $table */
@@ -131,8 +167,8 @@ class AnonymizeUsersCommandTest extends TestCase
         /** @var \BEdita\Core\Model\Entity\User $user */
         $user = $table->newEmptyEntity();
         $this->command->anonymize($faker, $user, $table, new ConsoleIo(), $processed, $saved, $errors);
-        $this->assertEquals(1, $errors);
+        $this->assertEquals(0, $errors);
         $this->assertEquals(1, $processed);
-        $this->assertEquals(0, $saved);
+        $this->assertEquals(1, $saved);
     }
 }
