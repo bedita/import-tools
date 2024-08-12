@@ -116,6 +116,7 @@ class AnonymizeUsersCommandTest extends TestCase
     {
         LoggedUser::setUserAdmin();
         $table = $this->fetchTable('Users');
+        /** @var \BEdita\Core\Model\Entity\User $user */
         $user = $table->newEmptyEntity();
         $user->username = 'gustavo';
         $user->email = 'gustavo@bedita.net';
