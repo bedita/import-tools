@@ -126,7 +126,9 @@ class AnonymizeUsersCommandTest extends TestCase
     {
         $faker = Factory::create('it_IT');
         $processed = $saved = $errors = 0;
+        /** @var \BEdita\Core\Model\Table\UsersTable $table */
         $table = $this->fetchTable('Users');
+        /** @var \BEdita\Core\Model\Entity\User $user */
         $user = $table->newEmptyEntity();
         $this->command->anonymize($faker, $user, $table, new ConsoleIo(), $processed, $saved, $errors);
         $this->assertEquals(1, $errors);
