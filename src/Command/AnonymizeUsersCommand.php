@@ -26,8 +26,6 @@ use Faker\Factory;
 
 /**
  * Anonymize users command.
- *
- * @property \BEdita\Core\Model\Table\UsersTable $Users
  */
 class AnonymizeUsersCommand extends Command
 {
@@ -82,17 +80,18 @@ class AnonymizeUsersCommand extends Command
     {
         $io->success('Start.');
         LoggedUser::setUserAdmin();
-        $this->Users = $this->fetchTable('Users');
+        /** @var \BEdita\Core\Model\Table\UsersTable $table */
+        $table = $this->fetchTable('Users');
         $this->preserveUsers = array_map('intval', explode(',', $args->getOption('preserve')));
-        $query = $this->Users->find()
+        $query = $table->find()
             ->where([
-                $this->Users->aliasField('locked') => 0,
-                $this->Users->aliasField('deleted') => 0,
-                $this->Users->aliasField('id') . ' NOT IN' => $this->preserveUsers,
+                $table->aliasField('locked') => 0,
+                $table->aliasField('deleted') => 0,
+                $table->aliasField('id') . ' NOT IN' => $this->preserveUsers,
             ]);
         $id = $args->getOption('id');
         if ($id) {
-            $query->where([$this->Users->aliasField('id') => $id]);
+            $query->where([$table->aliasField('id') => $id]);
         }
         $faker = Factory::create('it_IT');
         $processed = $saved = $errors = 0;
@@ -102,7 +101,7 @@ class AnonymizeUsersCommand extends Command
             $user->name = $faker->firstName();
             $user->surname = $faker->lastName();
             $email = $faker->email();
-            while ($this->Users->exists([$this->Users->aliasField('email') => $email])) {
+            while ($table->exists([$table->aliasField('email') => $email])) {
                 $email = $faker->email();
             }
             $user->email = $email;
@@ -110,7 +109,7 @@ class AnonymizeUsersCommand extends Command
             $user->username = $email;
             $processed++;
             try {
-                $this->Users->saveOrFail($user);
+                $table->saveOrFail($user);
                 $this->log(sprintf('[OK] User %s updated', $user->id), 'debug');
                 $saved++;
                 $io->verbose(sprintf('Saved %s as [username: %s, email: %s]', $user->id, $user->username, $user->email));
