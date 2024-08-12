@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 namespace BEdita\ImportTools\Command;
 
+use BEdita\Core\Model\Entity\User;
+use BEdita\Core\Model\Table\UsersTable;
 use BEdita\Core\Utility\LoggedUser;
 use Cake\Command\Command;
 use Cake\Console\Arguments;
@@ -23,6 +25,7 @@ use Cake\Console\ConsoleOptionParser;
 use Cake\ORM\Query;
 use Cake\Utility\Text;
 use Faker\Factory;
+use Faker\Generator;
 
 /**
  * Anonymize users command.
@@ -97,27 +100,7 @@ class AnonymizeUsersCommand extends Command
         $processed = $saved = $errors = 0;
         /** @var \BEdita\Core\Model\Entity\User $user */
         foreach ($this->objectsGenerator($query) as $user) {
-            $io->verbose(sprintf('Processing user %s [username: %s, email: %s]', $user->id, $user->username, $user->email));
-            $user->name = $faker->firstName();
-            $user->surname = $faker->lastName();
-            $email = $faker->email();
-            while ($table->exists([$table->aliasField('email') => $email])) {
-                $email = $faker->email();
-            }
-            $user->email = $email;
-            $user->uname = sprintf('user-%s', Text::uuid());
-            $user->username = $email;
-            $processed++;
-            try {
-                $table->saveOrFail($user);
-                $this->log(sprintf('[OK] User %s updated', $user->id), 'debug');
-                $saved++;
-                $io->verbose(sprintf('Saved %s as [username: %s, email: %s]', $user->id, $user->username, $user->email));
-            } catch (\Exception $e) {
-                $this->log(sprintf('[KO] User %s not updated', $user->id), 'error');
-                $errors++;
-                $io->verbose(sprintf('Error %s as [username: %s, email: %s]', $user->id, $user->username, $user->email));
-            }
+            $this->updateUser($faker, $user, $table, $io, $processed, $saved, $errors);
         }
         $io->out(sprintf('Users processed: %s', $processed));
         $io->out(sprintf('Users saved: %s', $saved));
@@ -125,6 +108,43 @@ class AnonymizeUsersCommand extends Command
         $io->success('Done.');
 
         return null;
+    }
+
+    /**
+     * Update user.
+     *
+     * @param \Faker\Generator $faker Faker generator
+     * @param \BEdita\Core\Model\Entity\User $user User entity
+     * @param \BEdita\Core\Model\Table\UsersTable $table Users table
+     * @param \Cake\Console\ConsoleIo $io Console IO
+     * @param int $processed Processed users
+     * @param int $saved Saved users
+     * @param int $errors Errors
+     * @return void
+     */
+    public function updateUser(Generator $faker, User $user, UsersTable $table, ConsoleIo $io, int &$processed, int &$saved, int &$errors): void
+    {
+        $io->verbose(sprintf('Processing user %s [username: %s, email: %s]', $user->id, $user->username, $user->email));
+        $user->name = $faker->firstName();
+        $user->surname = $faker->lastName();
+        $email = $faker->email();
+        while ($table->exists([$table->aliasField('email') => $email])) {
+            $email = $faker->email();
+        }
+        $user->email = $email;
+        $user->uname = sprintf('user-%s', Text::uuid());
+        $user->username = $email;
+        $processed++;
+        try {
+            $table->saveOrFail($user);
+            $this->log(sprintf('[OK] User %s updated', $user->id), 'debug');
+            $saved++;
+            $io->verbose(sprintf('Saved %s as [username: %s, email: %s]', $user->id, $user->username, $user->email));
+        } catch (\Exception $e) {
+            $this->log(sprintf('[KO] User %s not updated', $user->id), 'error');
+            $errors++;
+            $io->verbose(sprintf('Error %s as [username: %s, email: %s]', $user->id, $user->username, $user->email));
+        }
     }
 
     /**

@@ -15,8 +15,10 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Test\TestCase\Command;
 
 use BEdita\ImportTools\Command\AnonymizeUsersCommand;
+use Cake\Console\ConsoleIo;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
+use Faker\Factory;
 
 /**
  * {@see \BEdita\ImportTools\Command\AnonymizeUsersCommand} Test Case
@@ -84,6 +86,7 @@ class AnonymizeUsersCommandTest extends TestCase
      * @return void
      * @covers ::execute()
      * @covers ::objectsIterator()
+     * @covers ::updateUser()
      */
     public function testExecuteById(): void
     {
@@ -101,6 +104,7 @@ class AnonymizeUsersCommandTest extends TestCase
      * @return void
      * @covers ::execute()
      * @covers ::objectsIterator()
+     * @covers ::updateUser()
      */
     public function testExecute(): void
     {
@@ -110,5 +114,23 @@ class AnonymizeUsersCommandTest extends TestCase
         $this->assertOutputContains('Users saved: 0');
         $this->assertOutputContains('Users not saved: 0');
         $this->assertOutputContains('Done.');
+    }
+
+    /**
+     * Test updateUser
+     *
+     * @return void
+     * @covers ::updateUser()
+     */
+    public function testUpdateUser(): void
+    {
+        $faker = Factory::create('it_IT');
+        $processed = $saved = $errors = 0;
+        $table = $this->fetchTable('Users');
+        $user = $table->newEmptyEntity();
+        $this->command->updateUser($faker, $user, $table, new ConsoleIo(), $processed, $saved, $errors);
+        $this->assertEquals(1, $errors);
+        $this->assertEquals(1, $processed);
+        $this->assertEquals(0, $saved);
     }
 }
