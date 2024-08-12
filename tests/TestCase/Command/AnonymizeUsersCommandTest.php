@@ -98,10 +98,11 @@ class AnonymizeUsersCommandTest extends TestCase
      */
     public function testExecuteById(): void
     {
-        $this->exec('anonymize_users --id 999999999');
+        // 5 'second user'
+        $this->exec('anonymize_users --id 5');
         $this->assertOutputContains('Start');
-        $this->assertOutputContains('Users processed: 0');
-        $this->assertOutputContains('Users saved: 0');
+        $this->assertOutputContains('Users processed: 1');
+        $this->assertOutputContains('Users saved: 1');
         $this->assertOutputContains('Users not saved: 0');
         $this->assertOutputContains('Done.');
     }
