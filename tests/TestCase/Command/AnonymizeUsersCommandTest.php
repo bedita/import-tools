@@ -117,18 +117,18 @@ class AnonymizeUsersCommandTest extends TestCase
     }
 
     /**
-     * Test updateUser
+     * Test anonymize
      *
      * @return void
-     * @covers ::updateUser()
+     * @covers ::anonymize()
      */
-    public function testUpdateUser(): void
+    public function testAnonymize(): void
     {
         $faker = Factory::create('it_IT');
         $processed = $saved = $errors = 0;
         $table = $this->fetchTable('Users');
         $user = $table->newEmptyEntity();
-        $this->command->updateUser($faker, $user, $table, new ConsoleIo(), $processed, $saved, $errors);
+        $this->command->anonymize($faker, $user, $table, new ConsoleIo(), $processed, $saved, $errors);
         $this->assertEquals(1, $errors);
         $this->assertEquals(1, $processed);
         $this->assertEquals(0, $saved);

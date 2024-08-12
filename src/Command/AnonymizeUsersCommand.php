@@ -100,7 +100,7 @@ class AnonymizeUsersCommand extends Command
         $processed = $saved = $errors = 0;
         /** @var \BEdita\Core\Model\Entity\User $user */
         foreach ($this->objectsGenerator($query) as $user) {
-            $this->updateUser($faker, $user, $table, $io, $processed, $saved, $errors);
+            $this->anonymize($faker, $user, $table, $io, $processed, $saved, $errors);
         }
         $io->out(sprintf('Users processed: %s', $processed));
         $io->out(sprintf('Users saved: %s', $saved));
@@ -122,7 +122,7 @@ class AnonymizeUsersCommand extends Command
      * @param int $errors Errors
      * @return void
      */
-    public function updateUser(Generator $faker, User $user, UsersTable $table, ConsoleIo $io, int &$processed, int &$saved, int &$errors): void
+    public function anonymize(Generator $faker, User $user, UsersTable $table, ConsoleIo $io, int &$processed, int &$saved, int &$errors): void
     {
         $io->verbose(sprintf('Processing user %s [username: %s, email: %s]', $user->id, $user->username, $user->email));
         $user->name = $faker->firstName();
