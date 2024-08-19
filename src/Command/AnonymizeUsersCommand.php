@@ -127,12 +127,9 @@ class AnonymizeUsersCommand extends Command
         $io->verbose(sprintf('Processing user %s [username: %s, email: %s]', $user->id, $user->username, $user->email));
         $user->name = $faker->firstName();
         $user->surname = $faker->lastName();
-        do {
-            $email = $faker->email();
-        } while ($table->exists([$table->aliasField('email') => $email]));
-        $user->email = $email;
+        $user->email = sprintf('%s.%d@%s', $faker->username(), $user->id, $faker->safeEmailDomain());
         $user->uname = sprintf('user-%s', Text::uuid());
-        $user->username = $email;
+        $user->username = $user->email;
         $processed++;
         try {
             $table->saveOrFail($user);
