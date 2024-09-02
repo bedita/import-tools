@@ -79,7 +79,7 @@ class AnonymizeUsersCommand extends Command
      * $ bin/cake anonymize_users --id 2
      * $ bin/cake anonymize_users --preserve 1,2,3
      */
-    public function execute(Arguments $args, ConsoleIo $io)
+    public function execute(Arguments $args, ConsoleIo $io): int
     {
         $io->success('Start.');
         LoggedUser::setUserAdmin();
@@ -107,7 +107,7 @@ class AnonymizeUsersCommand extends Command
         $io->out(sprintf('Users not saved: %s', $errors));
         $io->success('Done.');
 
-        return null;
+        return Command::CODE_SUCCESS;
     }
 
     /**
