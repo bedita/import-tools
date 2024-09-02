@@ -94,7 +94,7 @@ class AnonymizeUsersCommand extends Command
             ]);
         $id = $args->getOption('id');
         if ($id) {
-            $query->where([$table->aliasField('id') => $id]);
+            $query = $query->where([$table->aliasField('id') => $id]);
         }
         $faker = Factory::create('it_IT');
         $processed = $saved = $errors = 0;
