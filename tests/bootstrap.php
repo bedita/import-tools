@@ -99,6 +99,9 @@ if (!getenv('db_dsn')) {
 }
 ConnectionManager::setConfig('test', ['url' => getenv('db_dsn')]);
 ConnectionManager::alias('test', 'default');
+ConnectionManager::setConfig('test-import', ['url' => getenv('db_dsn')]);
+ConnectionManager::alias('test-import', 'import');
+
 
 if (!TableRegistry::getTableLocator() instanceof TableLocator) {
     TableRegistry::setTableLocator(new TableLocator());
