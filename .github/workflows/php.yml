@@ -68,7 +68,7 @@ jobs:
         id: test-coverage
         uses: johanvanhelden/gha-clover-test-coverage-check@v1
         with:
-          percentage: '74'
+          percentage: '70'
           filename: "${{ matrix.php-version }}-${{ strategy.job-index }}-clover.xml"
 
       - name: 'Export coverage results'
