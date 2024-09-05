@@ -44,22 +44,15 @@ class ImportProjectCommand extends Command
     {
         $io->out('Start');
         $project = new Project($io);
-
-        // check connection
         if ($project->checkDatasourceConfig() === false) {
             $this->abort();
         }
-
-        // review `applications`
         if ($project->reviewApplications() === false) {
             $this->abort();
         }
-
-        // review `users`
         if ($project->reviewUsers() === false) {
             $this->abort();
         }
-
         $io->success('Import project done.');
         $io->out('End');
 
