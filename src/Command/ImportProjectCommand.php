@@ -60,7 +60,9 @@ class ImportProjectCommand extends Command
         }
 
         // review `applications`
-        $this->Applications = $this->fetchTable('Applications');
+        /** @var \BEdita\Core\Model\Table\ApplicationsTable $applications */
+        $applications = $this->fetchTable('Applications');
+        $this->Applications = $applications;
         $current = $this->loadApplications($defaultConnection);
         $import = $this->loadApplications($importConnection);
         $missing = array_diff(array_keys($import), array_keys($current));
@@ -72,7 +74,9 @@ class ImportProjectCommand extends Command
         $this->updateApplications($importConnection, $update);
 
         // review `users`
-        $this->Users = $this->fetchTable('Users');
+        /** @var \BEdita\Core\Model\Table\UsersTable $users */
+        $users = $this->fetchTable('Users');
+        $this->Users = $users;
         $current = $this->loadUsers($defaultConnection);
         $import = $this->loadUsers($importConnection);
         $missing = array_diff(array_keys($import), array_keys($current));
