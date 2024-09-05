@@ -56,5 +56,6 @@ class ImportProjectCommandTest extends TestCase
     {
         $this->exec(sprintf('import_project'));
         $this->assertOutputContains('Start');
+        $this->assertExitError('Unable to connect to `import` datasource, please review "Datasource" configuration');
     }
 }

@@ -92,6 +92,8 @@ class ImportProjectCommand extends Command
         $this->updateUsers($importConnection, $update);
         $io->success('Import project done.');
         $io->out('End');
+
+        return static::CODE_SUCCESS;
     }
 
     /**

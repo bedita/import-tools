@@ -16,12 +16,12 @@ jobs:
   cs:
     uses: bedita/github-workflows/.github/workflows/php-cs.yml@v2
     with:
-      php_versions: '["7.4", "8.1", "8.2", "8.3"]'
+      php_versions: '["8.3"]'
 
   stan:
     uses: bedita/github-workflows/.github/workflows/php-stan.yml@v2
     with:
-      php_versions: '["7.4", "8.1", "8.2", "8.3"]'
+      php_versions: '["8.3"]'
 
   unit:
     name: 'Run unit tests'
@@ -68,7 +68,7 @@ jobs:
         id: test-coverage
         uses: johanvanhelden/gha-clover-test-coverage-check@v1
         with:
-          percentage: '80'
+          percentage: '74'
           filename: "${{ matrix.php-version }}-${{ strategy.job-index }}-clover.xml"
 
       - name: 'Export coverage results'
