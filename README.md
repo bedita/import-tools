@@ -25,6 +25,21 @@ composer require bedita/import-tools
 
 ## Commands
 
+### AnonymizeUsersCommand
+
+This command provides a tool to anonymize users.
+Usage examples
+```bash
+// anonymize all users (except user by ID 1, admin)
+$ bin/cake anonymize_users
+
+// anonymize users by id 2,3,4
+$ bin/cake anonymize_users --id 2,3,4
+
+// anonymize all users except users by id 1,2,3
+$ bin/cake anonymize_users --preserve 1,2,3
+```
+
 ### ImportCommand
 
 This command provides a tool to import data from csv file.
@@ -46,6 +61,45 @@ $ bin/cake import -f news.csv -t news -p my-folder-uname
 # translations
 $ bin/cake import --file translations.csv --type translations
 $ bin/cake import -f translations.csv -t translations
+```
+
+### ImportProjectCommand
+
+You could use this command when you are copying a remote database to a locale database, and after that you want to "adjust" applications and users.
+Applications and users in default datasource will be updated.
+
+Before launching it, you should setup properly default and import datasources in config/app_local.php.
+Example:
+```php
+'Datasources' => [
+    // the target database
+    'default' => [
+        'className' => 'Cake\Database\Connection',
+        'driver' => 'Cake\Database\Driver\Mysql',
+        'host' => '***********',
+        'port' => '***********',
+        'username' => '***********',
+        'password' => '***********',
+        'database' => '***********',
+        // ...
+    ],
+    // the remote database you want to you as source
+    'import' => [
+        'className' => 'Cake\Database\Connection',
+        'driver' => 'Cake\Database\Driver\Mysql',
+        'host' => '***********',
+        'port' => '***********',
+        'username' => '***********',
+        'password' => '***********',
+        'database' => '***********',
+        // ...
+    ],
+],
+```
+
+Usage example:
+```bash
+$ bin/cake import_project
 ```
 
 ### TranslateFileCommand
