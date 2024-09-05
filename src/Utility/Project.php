@@ -29,6 +29,21 @@ class Project
     use LocatorAwareTrait;
 
     /**
+     * @var \Cake\Database\Connection|null
+     */
+    protected $defaultConnection;
+
+    /**
+     * @var \Cake\Database\Connection|null
+     */
+    protected $importConnection;
+
+    /**
+     * @var \Cake\Console\ConsoleIo
+     */
+    protected $io;
+
+    /**
      * @var \BEdita\Core\Model\Table\ApplicationsTable
      */
     protected $Applications;
@@ -43,7 +58,7 @@ class Project
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(ConsoleIo $io)
     {
         /** @var \BEdita\Core\Model\Table\ApplicationsTable $applications */
         $applications = $this->fetchTable('Applications');
@@ -52,25 +67,32 @@ class Project
         /** @var \BEdita\Core\Model\Table\UsersTable $users */
         $users = $this->fetchTable('Users');
         $this->Users = $users;
+
+        $this->io = $io;
+
+        /** @var \Cake\Database\Connection|null $defaultConnection */
+        $defaultConnection = ConnectionManager::get('default');
+        $this->defaultConnection = $defaultConnection;
+
+        /** @var \Cake\Database\Connection|null $importConnection */
+        $importConnection = ConnectionManager::get('import');
+        $this->importConnection = $importConnection;
     }
 
     /**
      * Check if `import` and `default` datasources are correctly configured
      *
-     * @param \Cake\Console\ConsoleIo $io The console io
      * @return bool
      */
-    public function checkDatasourceConfig(ConsoleIo $io): bool
+    public function checkDatasourceConfig(): bool
     {
         if (!in_array('import', ConnectionManager::configured())) {
-            $io->error('Unable to connect to `import` datasource, please review "Datasource" configuration');
+            $this->io->error('Unable to connect to `import` datasource, please review "Datasource" configuration');
 
             return false;
         }
-        $importConnection = ConnectionManager::get('import');
-        $defaultConnection = ConnectionManager::get('default');
-        if (!$importConnection instanceof Connection || !$defaultConnection instanceof Connection) {
-            $io->error('Wrong connection type, please review "Datasource" configuration');
+        if (!$this->importConnection instanceof Connection || !$this->defaultConnection instanceof Connection) {
+            $this->io->error('Wrong connection type, please review "Datasource" configuration');
 
             return false;
         }
@@ -152,23 +174,20 @@ class Project
     /**
      * Review applications and update api keys
      *
-     * @param \Cake\Database\Connection $defaultConnection The default connection
-     * @param \Cake\Database\Connection $importConnection The import connection
-     * @param \Cake\Console\ConsoleIo $io The console io
      * @return bool
      */
-    public function reviewApplications(Connection $defaultConnection, Connection $importConnection, ConsoleIo $io): bool
+    public function reviewApplications(): bool
     {
-        $current = $this->loadApplications($defaultConnection);
-        $import = $this->loadApplications($importConnection);
+        $current = $this->loadApplications($this->defaultConnection);
+        $import = $this->loadApplications($this->importConnection);
         $missing = array_diff(array_keys($import), array_keys($current));
         if (!empty($missing)) {
-            $io->error(sprintf('Some applications are missing on current project: %s', implode(' ', $missing)));
+            $this->io->error(sprintf('Some applications are missing on current project: %s', implode(' ', $missing)));
 
             return false;
         }
         $update = array_intersect_key($current, $import);
-        $this->updateApplications($importConnection, $update);
+        $this->updateApplications($this->importConnection, $update);
 
         return true;
     }
@@ -176,26 +195,23 @@ class Project
     /**
      * Review users and update password hashes
      *
-     * @param \Cake\Database\Connection $defaultConnection The default connection
-     * @param \Cake\Database\Connection $importConnection The import connection
-     * @param \Cake\Console\ConsoleIo $io The console io
      * @return bool
      */
-    public function reviewUsers(Connection $defaultConnection, Connection $importConnection, ConsoleIo $io): bool
+    public function reviewUsers(): bool
     {
-        $current = $this->loadUsers($defaultConnection);
-        $import = $this->loadUsers($importConnection);
+        $current = $this->loadUsers($this->defaultConnection);
+        $import = $this->loadUsers($this->importConnection);
         $missing = array_diff(array_keys($import), array_keys($current));
         if (!empty($missing)) {
-            $io->warning(sprintf('Some users are missing in current project [%d]', count($missing)));
-            if ($io->askChoice('Do you want to proceed?', ['y', 'n'], 'n') === 'n') {
-                $io->error('Aborting.');
+            $this->io->warning(sprintf('Some users are missing in current project [%d]', count($missing)));
+            if ($this->io->askChoice('Do you want to proceed?', ['y', 'n'], 'n') === 'n') {
+                $this->io->error('Aborting.');
 
                 return false;
             }
         }
         $update = array_intersect_key($current, $import);
-        $this->updateUsers($importConnection, $update);
+        $this->updateUsers($this->importConnection, $update);
 
         return true;
     }

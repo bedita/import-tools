@@ -18,7 +18,6 @@ use BEdita\ImportTools\Utility\Project;
 use Cake\Command\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
-use Cake\Datasource\ConnectionManager;
 
 /**
  * Command to prepare `applications` and `users` to import a project in a new environment.
@@ -44,23 +43,20 @@ class ImportProjectCommand extends Command
     public function execute(Arguments $args, ConsoleIo $io)
     {
         $io->out('Start');
-        $project = new Project();
+        $project = new Project($io);
 
         // check connection
-        if (!$project->checkDatasourceConfig($io)) {
+        if ($project->checkDatasourceConfig() === false) {
             $this->abort();
         }
 
-        $importConnection = ConnectionManager::get('import');
-        $defaultConnection = ConnectionManager::get('default');
-
         // review `applications`
-        if ($project->reviewApplications($importConnection, $defaultConnection, $io) === false) {
+        if ($project->reviewApplications() === false) {
             $this->abort();
         }
 
         // review `users`
-        if ($project->reviewUsers($importConnection, $defaultConnection, $io) === false) {
+        if ($project->reviewUsers() === false) {
             $this->abort();
         }
 
