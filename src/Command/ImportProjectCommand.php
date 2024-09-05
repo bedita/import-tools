@@ -14,12 +14,11 @@ declare(strict_types=1);
  */
 namespace BEdita\ImportTools\Command;
 
+use BEdita\ImportTools\Utility\Project;
 use Cake\Command\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
-use Cake\Database\Connection;
 use Cake\Datasource\ConnectionManager;
-use Cake\Utility\Hash;
 
 /**
  * Command to prepare `applications` and `users` to import a project in a new environment.
@@ -32,9 +31,6 @@ use Cake\Utility\Hash;
  *  - users password hashes are changed (if set) in the new imported project using current users password hashes on records with the same `username`
  *
  * After this command is finished the new imported project can be used in the current environment and replace current project/database.
- *
- * @property \BEdita\Core\Model\Table\ApplicationsTable $Applications
- * @property \BEdita\Core\Model\Table\UsersTable $Users
  */
 class ImportProjectCommand extends Command
 {
@@ -48,122 +44,29 @@ class ImportProjectCommand extends Command
     public function execute(Arguments $args, ConsoleIo $io)
     {
         $io->out('Start');
-        if (!in_array('import', ConnectionManager::configured())) {
-            $io->error('Unable to connect to `import` datasource, please review "Datasource" configuration');
+        $project = new Project();
+
+        // check connection
+        if (!$project->checkDatasourceConfig($io)) {
             $this->abort();
         }
+
         $importConnection = ConnectionManager::get('import');
         $defaultConnection = ConnectionManager::get('default');
-        if (!$importConnection instanceof Connection || !$defaultConnection instanceof Connection) {
-            $io->error('Wrong connection type, please review "Datasource" configuration');
-            $this->abort();
-        }
 
         // review `applications`
-        /** @var \BEdita\Core\Model\Table\ApplicationsTable $applications */
-        $applications = $this->fetchTable('Applications');
-        $this->Applications = $applications;
-        $current = $this->loadApplications($defaultConnection);
-        $import = $this->loadApplications($importConnection);
-        $missing = array_diff(array_keys($import), array_keys($current));
-        if (!empty($missing)) {
-            $io->error(sprintf('Some applications are missing on current project: %s', implode(' ', $missing)));
+        if ($project->reviewApplications($importConnection, $defaultConnection, $io) === false) {
             $this->abort();
         }
-        $update = array_intersect_key($current, $import);
-        $this->updateApplications($importConnection, $update);
 
         // review `users`
-        /** @var \BEdita\Core\Model\Table\UsersTable $users */
-        $users = $this->fetchTable('Users');
-        $this->Users = $users;
-        $current = $this->loadUsers($defaultConnection);
-        $import = $this->loadUsers($importConnection);
-        $missing = array_diff(array_keys($import), array_keys($current));
-        if (!empty($missing)) {
-            $io->warning(sprintf('Some users are missing in current project [%d]', count($missing)));
-
-            if ($io->askChoice('Do you want to proceed?', ['y', 'n'], 'n') === 'n') {
-                $io->error('Aborting.');
-                $this->abort();
-            }
+        if ($project->reviewUsers($importConnection, $defaultConnection, $io) === false) {
+            $this->abort();
         }
-        $update = array_intersect_key($current, $import);
-        $this->updateUsers($importConnection, $update);
+
         $io->success('Import project done.');
         $io->out('End');
 
         return static::CODE_SUCCESS;
-    }
-
-    /**
-     * Load applications on a given connection
-     * Return an array having `name` as key,
-     *
-     * @param \Cake\Database\Connection $connection The Connection
-     * @return array
-     */
-    protected function loadApplications(Connection $connection): array
-    {
-        $this->Applications->setConnection($connection);
-        $apps = $this->Applications->find()->select(['name', 'api_key', 'client_secret'])->toArray();
-
-        return Hash::combine($apps, '{n}.name', '{n}');
-    }
-
-    /**
-     * Load users on a given connection
-     * Return an array having `username` as key,
-     *
-     * @param \Cake\Database\Connection $connection The Connection
-     * @return array
-     */
-    protected function loadUsers(Connection $connection): array
-    {
-        $this->Users->setConnection($connection);
-        $users = $this->Users->find()->select(['username', 'password_hash'])->toArray();
-
-        return Hash::combine($users, '{n}.username', '{n}');
-    }
-
-    /**
-     * Update applications api keys using api keys provided in input array
-     *
-     * @param \Cake\Database\Connection $connection The connection
-     * @param array $applications Application data
-     * @return void
-     */
-    protected function updateApplications(Connection $connection, array $applications): void
-    {
-        $this->Applications->setConnection($connection);
-        foreach ($applications as $name => $application) {
-            /** @var \BEdita\Core\Model\Entity\Application $entity */
-            $entity = $this->Applications->find()->where(['name' => $name])->firstOrFail();
-            $entity->api_key = $application->api_key;
-            $entity->client_secret = $application->client_secret;
-            $this->Applications->saveOrFail($entity);
-        }
-    }
-
-    /**
-     * Update applications api keys using api keys provided in input array
-     *
-     * @param \Cake\Database\Connection $connection The connection
-     * @param array $users Users data
-     * @return void
-     */
-    protected function updateUsers(Connection $connection, array $users): void
-    {
-        foreach ($users as $username => $user) {
-            if (empty($user->password_hash)) {
-                continue;
-            }
-            $query = sprintf(
-                "UPDATE users SET password_hash = '%s' WHERE username = '%s'",
-                $user->password_hash,
-                $username
-            );
-            $connection->execute($query);
-        }
     }
 }
