@@ -46,4 +46,3 @@ trait ReadTrait
         yield from $this->$method(...$params);
     }
 }
-
