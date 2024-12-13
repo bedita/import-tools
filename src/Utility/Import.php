@@ -469,6 +469,7 @@ class Import
      * @param string $extraKey Extra key.
      * @param string $extraValue Extra value.
      * @return \Cake\ORM\Query|null
+     * @codeCoverageIgnore as JSON_UNQUOTE and JSON_EXTRACT are not available for sqlite
      */
     public function findImported(Table $table, string $extraKey, string $extraValue): ?Query
     {
