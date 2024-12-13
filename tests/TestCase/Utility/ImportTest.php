@@ -412,6 +412,9 @@ class ImportTest extends TestCase
         $related = $objectsTable->save($related);
 
         $import = new Import();
+        $actual = $import->setRelated('test', $entity, []);
+        static::assertFalse($actual);
+
         $actual = $import->setRelated('test', $entity, [$related]);
         $actual = $objectsTable->get($actual[0]);
         static::assertEquals('test two', $actual->title);
