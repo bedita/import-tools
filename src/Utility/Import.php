@@ -15,12 +15,23 @@ declare(strict_types=1);
 
 namespace BEdita\ImportTools\Utility;
 
+use BEdita\Core\Model\Action\SaveEntityAction;
+use BEdita\Core\Model\Action\SetRelatedObjectsAction;
 use BEdita\Core\Model\Entity\ObjectEntity;
 use BEdita\Core\Model\Entity\Translation;
+use BEdita\Core\Model\Table\ObjectsTable;
+use BEdita\Core\Model\Table\TranslationsTable;
+use Cake\Database\Expression\FunctionExpression;
+use Cake\Database\Expression\QueryExpression;
+use Cake\Datasource\EntityInterface;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Log\LogTrait;
 use Cake\ORM\Locator\LocatorAwareTrait;
+use Cake\ORM\Query;
+use Cake\ORM\Table;
 use Cake\Utility\Hash;
+use DOMDocument;
+use DOMXPath;
 
 /**
  * Import utility
@@ -51,9 +62,9 @@ use Cake\Utility\Hash;
  */
 class Import
 {
-    use CsvTrait;
     use LocatorAwareTrait;
     use LogTrait;
+    use ReadTrait;
     use TreeTrait;
 
     /**
@@ -134,25 +145,53 @@ class Import
     public string $type = '';
 
     /**
+     * Source type
+     *
+     * @var string
+     */
+    public string $sourceType = 'csv';
+
+    /**
+     * Source mapping
+     *
+     * @var array
+     */
+    public array $sourceMapping = [];
+
+    /**
      * Objects table
      *
      * @var \BEdita\Core\Model\Table\ObjectsTable
      */
-    protected $objectsTable;
+    protected ObjectsTable $objectsTable;
 
     /**
      * Type table
      *
      * @var \BEdita\Core\Model\Table\ObjectsTable
      */
-    protected $typeTable;
+    protected ObjectsTable $typeTable;
 
     /**
      * Translations table
      *
      * @var \BEdita\Core\Model\Table\TranslationsTable
      */
-    protected $translationsTable;
+    protected TranslationsTable $translationsTable;
+
+    /**
+     * Assoc flag, for csv import
+     *
+     * @var bool
+     */
+    protected bool $assoc = true;
+
+    /**
+     * Element name, for xml import
+     *
+     * @var string
+     */
+    protected string $element = 'post';
 
     /**
      * Constructor
@@ -161,18 +200,24 @@ class Import
      * @param string|null $type Entity type
      * @param string|null $parent Parent uname or ID
      * @param bool|null $dryrun Dry run mode flag
+     * @param array|null $options Options
      * @return void
      */
     public function __construct(
         ?string $filename = null,
         ?string $type = 'objects',
         ?string $parent = null,
-        ?bool $dryrun = false
+        ?bool $dryrun = false,
+        ?array $options = ['mapping' => [], 'type' => 'csv', 'assoc' => true, 'element' => 'post']
     ) {
         $this->filename = $filename;
         $this->type = $type;
         $this->parent = $parent;
         $this->dryrun = $dryrun;
+        $this->sourceMapping = Hash::get($options, 'mapping', []);
+        $this->sourceType = Hash::get($options, 'type', 'csv');
+        $this->assoc = Hash::get($options, 'assoc', true);
+        $this->element = Hash::get($options, 'element', 'post');
         $this->processed = 0;
         $this->saved = 0;
         $this->errors = 0;
@@ -190,15 +235,50 @@ class Import
     }
 
     /**
+     * Save media
+     *
+     * @param \Cake\ORM\Table $mediaTable Media table
+     * @param array $mediaData Media data
+     * @param array $streamData Stream data
+     * @return \Cake\Datasource\EntityInterface|bool
+     */
+    public function saveMedia($mediaTable, array $mediaData, array $streamData): EntityInterface|bool
+    {
+        // create media
+        $media = $mediaTable->newEntity($mediaData);
+        if ($this->dryrun === true) {
+            $this->skipped++;
+
+            return $media;
+        }
+        // create media
+        $action = new SaveEntityAction(['table' => $mediaTable]);
+        $entity = $media;
+        $data = $mediaData;
+        $entity = $action(compact('entity', 'data'));
+        $id = $entity->id;
+
+        // create stream and attach it to the media
+        $streamsTable = $this->fetchTable('Streams');
+        $entity = $streamsTable->newEmptyEntity();
+        $action = new SaveEntityAction(['table' => $streamsTable]);
+        $data = $streamData;
+        $entity->set('object_id', $id);
+
+        return $action(compact('entity', 'data'));
+    }
+
+    /**
      * Save objects
      *
      * @return void
      */
     public function saveObjects(): void
     {
-        foreach ($this->readCsv($this->filename) as $obj) {
+        foreach ($this->readItem($this->sourceType, $this->filename, $this->assoc, $this->element) as $obj) {
             try {
-                $this->saveObject($obj);
+                $data = $this->transform($obj, $this->sourceMapping);
+                $this->saveObject($data);
             } catch (\Exception $e) {
                 $this->errorsDetails[] = $e->getMessage();
                 $this->errors++;
@@ -253,13 +333,32 @@ class Import
     }
 
     /**
+     * Set related objects to an entity by relation
+     *
+     * @param string $relation Relation name
+     * @param \BEdita\Core\Model\Entity\ObjectEntity $entity Entity
+     * @param array $relatedEntities Related entities
+     * @return array|int|false
+     */
+    public function setRelated(string $relation, ObjectEntity $entity, array $relatedEntities): array|int|false
+    {
+        if (empty($relatedEntities)) {
+            return false;
+        }
+        $association = $entity->getTable()->associations()->getByProperty($relation);
+        $action = new SetRelatedObjectsAction(compact('association'));
+
+        return $action(['entity' => $entity, 'relatedEntities' => $relatedEntities]);
+    }
+
+    /**
      * Save translations
      *
      * @return void
      */
     public function saveTranslations(): void
     {
-        foreach ($this->readCsv($this->filename) as $translation) {
+        foreach ($this->readItem($this->sourceType, $this->filename, $this->assoc, $this->element) as $translation) {
             try {
                 $this->saveTranslation($translation);
             } catch (\Exception $e) {
@@ -317,6 +416,29 @@ class Import
     }
 
     /**
+     * Transform data into BEdita object data
+     *
+     * @param array $obj The source data
+     * @param array $mapping The mapping
+     * @return array
+     */
+    public function transform(array $obj, array $mapping): array
+    {
+        if (empty($mapping)) {
+            return $obj;
+        }
+        $data = [];
+        foreach ($mapping as $key => $value) {
+            if (!array_key_exists($key, $obj)) {
+                continue;
+            }
+            $data = Hash::insert($data, $value, Hash::get($obj, $key));
+        }
+
+        return $data;
+    }
+
+    /**
      * Get translated fields
      *
      * @param array $source Source data
@@ -338,5 +460,64 @@ class Import
         }
 
         return $fields;
+    }
+
+    /**
+     * Find object by key and identifier.
+     *
+     * @param \Cake\ORM\Table $table Table instance.
+     * @param string $extraKey Extra key.
+     * @param string $extraValue Extra value.
+     * @return \Cake\ORM\Query|null
+     */
+    public function findImported(Table $table, string $extraKey, string $extraValue): ?Query
+    {
+        return $table->find('available')->where(function (QueryExpression $exp) use ($table, $extraKey, $extraValue): QueryExpression {
+            return $exp->and([
+                $exp->isNotNull($table->aliasField('extra')),
+                $exp->eq(
+                    new FunctionExpression(
+                        'JSON_UNQUOTE',
+                        [
+                            new FunctionExpression(
+                                'JSON_EXTRACT',
+                                ['extra' => 'identifier', sprintf('$.%s', $extraKey)]
+                            ),
+                        ]
+                    ),
+                    new FunctionExpression('JSON_UNQUOTE', [json_encode($extraValue)])
+                ),
+            ]);
+        });
+    }
+
+    /**
+     * Clean HTML from attributes, preserve some (using xpath expression)
+     *
+     * @param string $html HTML content
+     * @param string $expression XPath expression
+     * @return string
+     */
+    public function cleanHtml(string $html, string $expression = "//@*[local-name() != 'href' and local-name() != 'id' and local-name() != 'src']"): string
+    {
+        $dom = new DOMDocument();
+        $metaUtf8 = '<meta http-equiv="content-type" content="text/html; charset=utf-8">';
+        $loaded = $dom->loadHTML($metaUtf8 . $html, LIBXML_NOWARNING);
+        if ($loaded === false) {
+            throw new \RuntimeException('Error loading HTML');
+        }
+        $xpath = new DOMXPath($dom);
+        $nodes = $xpath->query($expression);
+        foreach ($nodes as $node) {
+            $node->parentNode->removeAttribute($node->nodeName);
+        }
+        $body = $dom->documentElement->lastChild;
+        $content = $dom->saveHTML($body);
+        if ($content === false) {
+            throw new \RuntimeException('Error cleaning HTML');
+        }
+        $content = preg_replace('/<\\/?body(\\s+.*?>|>)/', '', $content);
+
+        return $content;
     }
 }
