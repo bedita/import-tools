@@ -228,7 +228,7 @@ class Import
         $this->objectsTable = $objectsTable;
         /** @var \BEdita\Core\Model\Table\ObjectsTable $typesTable */
         $typesTable = $this->fetchTable($this->type);
-        $this->typeTable = $typesTable;
+        $this->typeTable = $typesTable instanceof ObjectsTable ? $typesTable : $objectsTable;
         /** @var \BEdita\Core\Model\Table\TranslationsTable $translationsTable */
         $translationsTable = $this->fetchTable('translations');
         $this->translationsTable = $translationsTable;
