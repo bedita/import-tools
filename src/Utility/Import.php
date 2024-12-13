@@ -509,7 +509,9 @@ class Import
         $xpath = new DOMXPath($dom);
         $nodes = $xpath->query($expression);
         foreach ($nodes as $node) {
-            $node->parentNode->removeAttribute($node->nodeName);
+            /** @var \DOMElement $element */
+            $element = $node->parentNode;
+            $element->removeAttribute($node->nodeName);
         }
         $body = $dom->documentElement->lastChild;
         $content = $dom->saveHTML($body);

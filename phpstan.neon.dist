@@ -4,6 +4,6 @@ parameters:
   paths:
     - src
     - tests
+  excludePaths:
+    - tests/files
   level: 5
-  checkMissingIterableValueType: false
-  checkGenericClassInNonGenericObjectType: false
