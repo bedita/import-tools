@@ -38,17 +38,20 @@ class ImportTest extends TestCase
      */
     public $fixtures = [
         'plugin.BEdita/Core.ObjectTypes',
-        'plugin.BEdita/Core.PropertyTypes',
-        'plugin.BEdita/Core.Properties',
-        'plugin.BEdita/Core.Relations',
-        'plugin.BEdita/Core.RelationTypes',
         'plugin.BEdita/Core.Objects',
-        'plugin.BEdita/Core.ObjectRelations',
         'plugin.BEdita/Core.Locations',
         'plugin.BEdita/Core.Media',
         'plugin.BEdita/Core.Profiles',
         'plugin.BEdita/Core.Users',
+        'plugin.BEdita/Core.Roles',
+        'plugin.BEdita/Core.RolesUsers',
+        'plugin.BEdita/Core.Relations',
+        'plugin.BEdita/Core.RelationTypes',
+        'plugin.BEdita/Core.PropertyTypes',
+        'plugin.BEdita/Core.Properties',
+        'plugin.BEdita/Core.Config',
         'plugin.BEdita/Core.Trees',
+        'plugin.BEdita/Core.ObjectRelations',
     ];
 
     public function setUp(): void
@@ -390,6 +393,32 @@ class ImportTest extends TestCase
     }
 
     /**
+     * Test `setRelated` method
+     *
+     * @return void
+     */
+    public function testSetRelated(): void
+    {
+        /** @var \BEdita\Core\Model\Table\ObjectsTable $objectsTable */
+        $objectsTable = $this->fetchTable('Objects');
+        /** @var \BEdita\Core\Model\Entity\ObjectEntity $entity */
+        $entity = $objectsTable->newEntity(['title' => 'test one', 'status' => 'on']);
+        $entity->type = 'documents';
+        $entity = $objectsTable->save($entity);
+
+        /** @var \BEdita\Core\Model\Entity\ObjectEntity $related */
+        $related = $objectsTable->newEntity(['title' => 'test two', 'status' => 'on']);
+        $related->type = 'documents';
+        $related = $objectsTable->save($related);
+
+        $import = new Import();
+        $actual = $import->setRelated('test', $entity, [$related]);
+        $actual = $objectsTable->get($actual[0]);
+        static::assertEquals('test two', $actual->title);
+        static::assertEquals('on', $actual->status);
+    }
+
+    /**
      * Data provider for save translations with error test case.
      *
      * @return array
@@ -650,6 +679,43 @@ class ImportTest extends TestCase
         $html = '<div class="some-class">test <a href="some-url">me</a> <img src="an-image"></div>';
         $expected = '<div>test <a href="some-url">me</a> <img src="an-image"></div>';
         $actual = $import->cleanHtml($html);
+        static::assertEquals($expected, $actual);
+    }
+
+    /**
+     * Test `transform` method
+     *
+     * @return void
+     */
+    public function testTransform(): void
+    {
+        $import = new Import();
+        $mapping = [
+            't' => 'title',
+            'd' => 'description',
+            'b' => 'body',
+            's' => 'status',
+            'u' => 'uname',
+            'l' => 'lang',
+            'e' => 'extra',
+        ];
+        $data = [
+            't' => 'test title',
+            'd' => 'test description',
+            'b' => 'test body',
+            's' => 'on',
+            'u' => 'test-uname',
+            'l' => 'en',
+        ];
+        $expected = [
+            'title' => 'test title',
+            'description' => 'test description',
+            'body' => 'test body',
+            'status' => 'on',
+            'uname' => 'test-uname',
+            'lang' => 'en',
+        ];
+        $actual = $import->transform($data, $mapping);
         static::assertEquals($expected, $actual);
     }
 }
