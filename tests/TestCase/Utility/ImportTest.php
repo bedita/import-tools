@@ -542,4 +542,31 @@ class ImportTest extends TestCase
         $actual = $import->translatedFields($data);
         static::assertEquals($expected, $actual);
     }
+
+    /**
+     * Test `cleanHtml` method
+     *
+     * @return void
+     */
+    public function testCleanHtml(): void
+    {
+        $import = new Import();
+        $html = '<div class="some-class">test <a href="some-url">me</a> <img src="an-image"></div>';
+        $expected = '<div>test <a href="some-url">me</a> <img src="an-image"></div>';
+        $actual = $import->cleanHtml($html);
+        static::assertEquals($expected, $actual);
+    }
+
+    /**
+     * Test `cleanHtml` method with RuntimeException
+     *
+     * @return void
+     */
+    public function testCleanHtmlRuntimeException(): void
+    {
+        $exception = new \RuntimeException('Error loading HTML');
+        $this->expectExceptionObject($exception);
+        $import = new Import();
+        $import->cleanHtml('<div>testdiv>');
+    }
 }

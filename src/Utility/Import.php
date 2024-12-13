@@ -502,10 +502,7 @@ class Import
     {
         $dom = new DOMDocument();
         $metaUtf8 = '<meta http-equiv="content-type" content="text/html; charset=utf-8">';
-        $loaded = $dom->loadHTML($metaUtf8 . $html, LIBXML_NOWARNING);
-        if ($loaded === false) {
-            throw new \RuntimeException('Error loading HTML');
-        }
+        $dom->loadHTML($metaUtf8 . $html, LIBXML_NOWARNING);
         $xpath = new DOMXPath($dom);
         $nodes = $xpath->query($expression);
         foreach ($nodes as $node) {
@@ -515,9 +512,6 @@ class Import
         }
         $body = $dom->documentElement->lastChild;
         $content = $dom->saveHTML($body);
-        if ($content === false) {
-            throw new \RuntimeException('Error cleaning HTML');
-        }
         $content = preg_replace('/<\\/?body(\\s+.*?>|>)/', '', $content);
 
         return $content;

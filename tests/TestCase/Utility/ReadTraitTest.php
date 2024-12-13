@@ -18,9 +18,9 @@ use BEdita\ImportTools\Utility\ReadTrait;
 use PHPUnit\Framework\TestCase;
 
 /**
- * {@see \BEdita\ImportTools\Utility\CsvTrait} Test Case
+ * {@see \BEdita\ImportTools\Utility\ReadTrait} Test Case
  *
- * @covers \BEdita\ImportTools\Utility\CsvTrait
+ * @covers \BEdita\ImportTools\Utility\ReadTrait
  */
 class ReadTraitTest extends TestCase
 {
