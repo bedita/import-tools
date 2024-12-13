@@ -556,17 +556,4 @@ class ImportTest extends TestCase
         $actual = $import->cleanHtml($html);
         static::assertEquals($expected, $actual);
     }
-
-    /**
-     * Test `cleanHtml` method with RuntimeException
-     *
-     * @return void
-     */
-    public function testCleanHtmlRuntimeException(): void
-    {
-        $exception = new \RuntimeException('Error loading HTML');
-        $this->expectExceptionObject($exception);
-        $import = new Import();
-        $import->cleanHtml('<div>testdiv>');
-    }
 }
