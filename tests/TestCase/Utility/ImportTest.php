@@ -18,7 +18,6 @@ use BEdita\Core\Filesystem\Adapter\LocalAdapter;
 use BEdita\Core\Filesystem\FilesystemRegistry;
 use BEdita\Core\Utility\LoggedUser;
 use BEdita\ImportTools\Utility\Import;
-use Cake\Core\Configure;
 use Cake\Http\Exception\BadRequestException;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\TestSuite\TestCase;
