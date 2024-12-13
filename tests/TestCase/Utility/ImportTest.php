@@ -14,12 +14,16 @@ declare(strict_types=1);
  */
 namespace BEdita\ImportTools\Test\TestCase\Utility;
 
+use BEdita\Core\Filesystem\Adapter\LocalAdapter;
+use BEdita\Core\Filesystem\FilesystemRegistry;
 use BEdita\Core\Utility\LoggedUser;
 use BEdita\ImportTools\Utility\Import;
+use Cake\Core\Configure;
 use Cake\Http\Exception\BadRequestException;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\TestSuite\TestCase;
 use Cake\Utility\Hash;
+use League\Flysystem\StorageAttributes;
 
 /**
  * {@see \BEdita\ImportTools\Utility\Import} Test Case
@@ -37,7 +41,13 @@ class ImportTest extends TestCase
         'plugin.BEdita/Core.ObjectTypes',
         'plugin.BEdita/Core.PropertyTypes',
         'plugin.BEdita/Core.Properties',
+        'plugin.BEdita/Core.Relations',
+        'plugin.BEdita/Core.RelationTypes',
         'plugin.BEdita/Core.Objects',
+        'plugin.BEdita/Core.ObjectRelations',
+        'plugin.BEdita/Core.Locations',
+        'plugin.BEdita/Core.Media',
+        'plugin.BEdita/Core.Profiles',
         'plugin.BEdita/Core.Users',
         'plugin.BEdita/Core.Trees',
     ];
@@ -291,6 +301,91 @@ class ImportTest extends TestCase
         $actual = $import->saveObject($data);
         static::assertEquals(0, $actual->saved);
         static::assertEquals(0, $actual->errors);
+    }
+
+    /**
+     * Test `saveMedia` method
+     *
+     * @return void
+     */
+    public function testSaveMedia(): void
+    {
+        $directory = 'default://';
+        FilesystemRegistry::dropAll();
+        FilesystemRegistry::setConfig('default', [
+            'className' => LocalAdapter::class,
+            'path' => TEST_FILES,
+        ]);
+        $mountManager = FilesystemRegistry::getMountManager();
+        $recursive = false;
+        $default = collection($mountManager->listContents($directory, $recursive)->toArray())
+            ->reject(function (StorageAttributes $object) {
+                return $object->isDir();
+            })
+            ->map(function (StorageAttributes $object) use ($mountManager) {
+                $path = $object->path();
+                $contents = fopen('php://memory', 'wb+');
+                fwrite($contents, $mountManager->read($path));
+                fseek($contents, 0);
+
+                return compact('contents', 'path');
+            })
+            ->compile();
+        $imagename = 'gustavo-supporto.jpg';
+        $filepath = TEST_FILES . DS . $imagename;
+        $import = new Import();
+        $id = LoggedUser::id();
+        $imageData = [
+            'title' => $imagename,
+            'status' => 'on',
+            'media_property' => false,
+            'created_by' => $id,
+            'modified_by' => $id,
+        ];
+        $streamData = [
+            'file_name' => $imagename,
+            'mime_type' => mime_content_type($filepath),
+            'contents' => file_get_contents($filepath),
+        ];
+        /** @var \BEdita\Core\Model\Table\MediaTable $mediaTable */
+        $mediaTable = $this->fetchTable('Images');
+        $media = $import->saveMedia(
+            $mediaTable,
+            $imageData,
+            $streamData
+        );
+        static::assertEquals($imagename, $media->file_name);
+        static::assertEquals('image/jpeg', $media->mime_type);
+    }
+
+    /**
+     * Test `saveMedia` method with dryrun true
+     *
+     * @return void
+     */
+    public function testSaveMediaDryRun(): void
+    {
+        $imagename = 'gustavo-supporto.jpg';
+        $filepath = TEST_FILES . DS . $imagename;
+        $import = new Import(null, 'images', null, true);
+        $imageData = [
+            'title' => $imagename,
+            'status' => 'on',
+        ];
+        $streamData = [
+            'file_name' => $imagename,
+            'mime_type' => mime_content_type($filepath),
+            'contents' => file_get_contents($filepath),
+        ];
+        /** @var \BEdita\Core\Model\Table\MediaTable $mediaTable */
+        $mediaTable = $this->fetchTable('Images');
+        $media = $import->saveMedia(
+            $mediaTable,
+            $imageData,
+            $streamData
+        );
+        static::assertEquals($imagename, $media->title);
+        static::assertEquals('on', $media->status);
     }
 
     /**
