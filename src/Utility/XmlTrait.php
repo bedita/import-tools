@@ -53,22 +53,26 @@ trait XmlTrait
      */
     protected function readXml(string $path, string $element): \Generator
     {
-        $reader = new XMLReader();
-        $reader->open($path);
-        $process = true;
-        while ($process) {
-            while (!($reader->nodeType == XMLReader::ELEMENT && $reader->name == $element)) {
-                if (!$reader->read()) {
-                    $process = false;
-                    break;
+        try {
+            $reader = new XMLReader();
+            $reader->open($path);
+            $process = true;
+            while ($process) {
+                while (!($reader->nodeType == XMLReader::ELEMENT && $reader->name == $element)) {
+                    if (!$reader->read()) {
+                        $process = false;
+                        break;
+                    }
+                }
+                if ($reader->nodeType == XMLReader::ELEMENT && $reader->name == $element) {
+                    $xml = simplexml_load_string($reader->readOuterXml(), null, LIBXML_NOCDATA);
+                    $json = json_encode($xml);
+                    yield json_decode($json, true);
+                    $reader->next();
                 }
             }
-            if ($reader->nodeType == XMLReader::ELEMENT && $reader->name == $element) {
-                $xml = simplexml_load_string($reader->readOuterXml(), null, LIBXML_NOCDATA);
-                $json = json_encode($xml);
-                yield json_decode($json, true);
-                $reader->next();
-            }
+        } catch (\Exception $e) {
+            throw new \RuntimeException(sprintf('Cannot open file: %s', $path), 0, $e);
         }
     }
 }

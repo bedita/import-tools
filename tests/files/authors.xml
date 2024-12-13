@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data>
+    <post>
+        <title>The Great Gatsby</title>
+        <author>Francis Scott Fitzgerald</author>
+    </post>
+    <post>
+        <title>Moby-Dick</title>
+        <author>Herman Melville</author>
+    </post>
+    <post>
+        <title>Ulysses</title>
+        <author>James Joyce</author>
+    </post>
+    <post>
+        <title>Hearth of Darkness</title>
+        <author>Joseph Conrad</author>
+    </post>
+</data>
