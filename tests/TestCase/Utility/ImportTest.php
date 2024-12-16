@@ -14,12 +14,15 @@ declare(strict_types=1);
  */
 namespace BEdita\ImportTools\Test\TestCase\Utility;
 
+use BEdita\Core\Filesystem\Adapter\LocalAdapter;
+use BEdita\Core\Filesystem\FilesystemRegistry;
 use BEdita\Core\Utility\LoggedUser;
 use BEdita\ImportTools\Utility\Import;
 use Cake\Http\Exception\BadRequestException;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\TestSuite\TestCase;
 use Cake\Utility\Hash;
+use League\Flysystem\StorageAttributes;
 
 /**
  * {@see \BEdita\ImportTools\Utility\Import} Test Case
@@ -35,11 +38,20 @@ class ImportTest extends TestCase
      */
     public $fixtures = [
         'plugin.BEdita/Core.ObjectTypes',
+        'plugin.BEdita/Core.Objects',
+        'plugin.BEdita/Core.Locations',
+        'plugin.BEdita/Core.Media',
+        'plugin.BEdita/Core.Profiles',
+        'plugin.BEdita/Core.Users',
+        'plugin.BEdita/Core.Roles',
+        'plugin.BEdita/Core.RolesUsers',
+        'plugin.BEdita/Core.Relations',
+        'plugin.BEdita/Core.RelationTypes',
         'plugin.BEdita/Core.PropertyTypes',
         'plugin.BEdita/Core.Properties',
-        'plugin.BEdita/Core.Objects',
-        'plugin.BEdita/Core.Users',
+        'plugin.BEdita/Core.Config',
         'plugin.BEdita/Core.Trees',
+        'plugin.BEdita/Core.ObjectRelations',
     ];
 
     public function setUp(): void
@@ -294,6 +306,122 @@ class ImportTest extends TestCase
     }
 
     /**
+     * Test `saveMedia` method
+     *
+     * @return void
+     */
+    public function testSaveMedia(): void
+    {
+        $directory = 'default://';
+        FilesystemRegistry::dropAll();
+        FilesystemRegistry::setConfig('default', [
+            'className' => LocalAdapter::class,
+            'path' => TEST_FILES,
+        ]);
+        $mountManager = FilesystemRegistry::getMountManager();
+        $recursive = false;
+        $default = collection($mountManager->listContents($directory, $recursive)->toArray())
+            ->reject(function (StorageAttributes $object) {
+                return $object->isDir();
+            })
+            ->map(function (StorageAttributes $object) use ($mountManager) {
+                $path = $object->path();
+                $contents = fopen('php://memory', 'wb+');
+                fwrite($contents, $mountManager->read($path));
+                fseek($contents, 0);
+
+                return compact('contents', 'path');
+            })
+            ->compile();
+        $imagename = 'gustavo-supporto.jpg';
+        $filepath = TEST_FILES . DS . $imagename;
+        $import = new Import();
+        $id = LoggedUser::id();
+        $imageData = [
+            'title' => $imagename,
+            'status' => 'on',
+            'media_property' => false,
+            'created_by' => $id,
+            'modified_by' => $id,
+        ];
+        $streamData = [
+            'file_name' => $imagename,
+            'mime_type' => mime_content_type($filepath),
+            'contents' => file_get_contents($filepath),
+        ];
+        /** @var \BEdita\Core\Model\Table\MediaTable $mediaTable */
+        $mediaTable = $this->fetchTable('Images');
+        /** @var \BEdita\Core\Model\Entity\Stream $stream */
+        $stream = $import->saveMedia(
+            $mediaTable,
+            $imageData,
+            $streamData
+        );
+        static::assertEquals($imagename, $stream->file_name);
+        static::assertEquals('image/jpeg', $stream->mime_type);
+    }
+
+    /**
+     * Test `saveMedia` method with dryrun true
+     *
+     * @return void
+     */
+    public function testSaveMediaDryRun(): void
+    {
+        $imagename = 'gustavo-supporto.jpg';
+        $filepath = TEST_FILES . DS . $imagename;
+        $import = new Import(null, 'images', null, true);
+        $imageData = [
+            'title' => $imagename,
+            'status' => 'on',
+        ];
+        $streamData = [
+            'file_name' => $imagename,
+            'mime_type' => mime_content_type($filepath),
+            'contents' => file_get_contents($filepath),
+        ];
+        /** @var \BEdita\Core\Model\Table\MediaTable $mediaTable */
+        $mediaTable = $this->fetchTable('Images');
+        /** @var \BEdita\Core\Model\Entity\Media $media */
+        $media = $import->saveMedia(
+            $mediaTable,
+            $imageData,
+            $streamData
+        );
+        static::assertEquals($imagename, $media->title);
+        static::assertEquals('on', $media->status);
+    }
+
+    /**
+     * Test `setRelated` method
+     *
+     * @return void
+     */
+    public function testSetRelated(): void
+    {
+        /** @var \BEdita\Core\Model\Table\ObjectsTable $objectsTable */
+        $objectsTable = $this->fetchTable('Objects');
+        /** @var \BEdita\Core\Model\Entity\ObjectEntity $entity */
+        $entity = $objectsTable->newEntity(['title' => 'test one', 'status' => 'on']);
+        $entity->type = 'documents';
+        $entity = $objectsTable->save($entity);
+
+        /** @var \BEdita\Core\Model\Entity\ObjectEntity $related */
+        $related = $objectsTable->newEntity(['title' => 'test two', 'status' => 'on']);
+        $related->type = 'documents';
+        $related = $objectsTable->save($related);
+
+        $import = new Import();
+        $actual = $import->setRelated('test', $entity, []);
+        static::assertFalse($actual);
+
+        $actual = $import->setRelated('test', $entity, [$related]);
+        $actual = $objectsTable->get($actual[0]);
+        static::assertEquals('test two', $actual->title);
+        static::assertEquals('on', $actual->status);
+    }
+
+    /**
      * Data provider for save translations with error test case.
      *
      * @return array
@@ -540,6 +668,57 @@ class ImportTest extends TestCase
     {
         $import = new Import();
         $actual = $import->translatedFields($data);
+        static::assertEquals($expected, $actual);
+    }
+
+    /**
+     * Test `cleanHtml` method
+     *
+     * @return void
+     */
+    public function testCleanHtml(): void
+    {
+        $import = new Import();
+        $html = '<div class="some-class">test <a href="some-url">me</a> <img src="an-image"></div>';
+        $expected = '<div>test <a href="some-url">me</a> <img src="an-image"></div>';
+        $actual = $import->cleanHtml($html);
+        static::assertEquals($expected, $actual);
+    }
+
+    /**
+     * Test `transform` method
+     *
+     * @return void
+     */
+    public function testTransform(): void
+    {
+        $import = new Import();
+        $mapping = [
+            't' => 'title',
+            'd' => 'description',
+            'b' => 'body',
+            's' => 'status',
+            'u' => 'uname',
+            'l' => 'lang',
+            'e' => 'extra',
+        ];
+        $data = [
+            't' => 'test title',
+            'd' => 'test description',
+            'b' => 'test body',
+            's' => 'on',
+            'u' => 'test-uname',
+            'l' => 'en',
+        ];
+        $expected = [
+            'title' => 'test title',
+            'description' => 'test description',
+            'body' => 'test body',
+            'status' => 'on',
+            'uname' => 'test-uname',
+            'lang' => 'en',
+        ];
+        $actual = $import->transform($data, $mapping);
         static::assertEquals($expected, $actual);
     }
 }

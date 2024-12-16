@@ -93,8 +93,6 @@ class AnonymizeUsersCommandTest extends TestCase
      *
      * @return void
      * @covers ::execute()
-     * @covers ::objectsIterator()
-     * @covers ::updateUser()
      */
     public function testExecuteById(): void
     {
@@ -112,8 +110,6 @@ class AnonymizeUsersCommandTest extends TestCase
      *
      * @return void
      * @covers ::execute()
-     * @covers ::objectsIterator()
-     * @covers ::updateUser()
      */
     public function testExecute(): void
     {
