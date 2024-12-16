@@ -74,7 +74,7 @@ jobs:
       - name: 'Export coverage results'
         uses: 'codecov/codecov-action@v5'
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}s
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: "./${{ matrix.php-version }}-${{ strategy.job-index }}-clover.xml"
           env_vars: PHP_VERSION
 
