@@ -137,10 +137,13 @@ class ProjectTest extends TestCase
      */
     public function testLoadApplications(): void
     {
+        /** @var \BEdita\Core\Model\Table\ApplicationsTable $table */
         $table = $this->fetchTable('Applications');
+        /** @var \BEdita\Core\Model\Entity\Application $entity */
         $entity = $table->newEmptyEntity();
         $entity->name = 'test-app';
         $table->save($entity);
+        /** @var \Cake\Database\Connection $defaultConnection */
         $defaultConnection = ConnectionManager::get('default');
         $project = new Project($this->io);
         $applications = $project->loadApplications($defaultConnection);
@@ -157,6 +160,7 @@ class ProjectTest extends TestCase
      */
     public function testLoadUsers(): void
     {
+        /** @var \Cake\Database\Connection $defaultConnection */
         $defaultConnection = ConnectionManager::get('default');
         $project = new class ($this->io) extends Project
         {
@@ -164,7 +168,8 @@ class ProjectTest extends TestCase
             public function __construct($io)
             {
                 parent::__construct($io);
-                $this->Users = new class {
+                /** @var \BEdita\Core\Model\Table\UsersTable $users */
+                $users = new class {
                     public function setConnection($connection): void
                     {
                     }
@@ -189,6 +194,7 @@ class ProjectTest extends TestCase
                         ];
                     }
                 };
+                $this->Users = $users;
             }
         };
         $users = $project->loadUsers($defaultConnection);
