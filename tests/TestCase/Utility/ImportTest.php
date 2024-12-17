@@ -351,14 +351,18 @@ class ImportTest extends TestCase
         ];
         /** @var \BEdita\Core\Model\Table\MediaTable $mediaTable */
         $mediaTable = $this->fetchTable('Images');
-        /** @var \BEdita\Core\Model\Entity\Stream $stream */
-        $stream = $import->saveMedia(
+        /** @var \BEdita\Core\Model\Entity\Media $media */
+        $media = $import->saveMedia(
             $mediaTable,
             $imageData,
             $streamData
         );
-        static::assertEquals($imagename, $stream->file_name);
-        static::assertEquals('image/jpeg', $stream->mime_type);
+        static::assertEquals($imagename, $media->title);
+        static::assertEquals('on', $media->status);
+        static::assertEquals($id, $media->created_by);
+        static::assertEquals($id, $media->modified_by);
+        static::assertEquals($imagename, $media->streams[0]->file_name);
+        static::assertEquals('image/jpeg', $media->streams[0]->mime_type);
     }
 
     /**
