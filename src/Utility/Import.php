@@ -254,8 +254,8 @@ class Import
         $action = new SaveEntityAction(['table' => $mediaTable]);
         $entity = $media;
         $data = $mediaData;
-        $entity = $action(compact('entity', 'data'));
-        $id = $entity->id;
+        $media = $action(compact('entity', 'data'));
+        $id = $media->id;
 
         // create stream and attach it to the media
         $streamsTable = $this->fetchTable('Streams');
@@ -263,8 +263,10 @@ class Import
         $action = new SaveEntityAction(['table' => $streamsTable]);
         $data = $streamData;
         $entity->set('object_id', $id);
+        $stream = $action(compact('entity', 'data'));
+        $mediaTable->loadInto($media, ['Streams']);
 
-        return $action(compact('entity', 'data'));
+        return $media;
     }
 
     /**
