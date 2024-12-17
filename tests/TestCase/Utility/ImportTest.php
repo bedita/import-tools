@@ -351,7 +351,7 @@ class ImportTest extends TestCase
         ];
         /** @var \BEdita\Core\Model\Table\MediaTable $mediaTable */
         $mediaTable = $this->fetchTable('Images');
-        /** @var \BEdita\Core\Model\Entity\Stream $stream */
+        /** @var \BEdita\Core\Model\Entity\Media $media */
         $media = $import->saveMedia(
             $mediaTable,
             $imageData,
