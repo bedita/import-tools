@@ -19,6 +19,7 @@ use BEdita\Core\Model\Action\SaveEntityAction;
 use BEdita\Core\Model\Action\SetRelatedObjectsAction;
 use BEdita\Core\Model\Entity\ObjectEntity;
 use BEdita\Core\Model\Entity\Translation;
+use BEdita\Core\Model\Table\ObjectsBaseTable;
 use BEdita\Core\Model\Table\ObjectsTable;
 use BEdita\Core\Model\Table\TranslationsTable;
 use Cake\Database\Expression\FunctionExpression;
@@ -168,9 +169,9 @@ class Import
     /**
      * Type table
      *
-     * @var \BEdita\Core\Model\Table\ObjectsTable
+     * @var \BEdita\Core\Model\Table\ObjectsTable|\BEdita\Core\Model\Table\ObjectsBaseTable
      */
-    protected ObjectsTable $typeTable;
+    protected ObjectsTable|ObjectsBaseTable $typeTable;
 
     /**
      * Translations table
@@ -227,7 +228,7 @@ class Import
         $objectsTable = $this->fetchTable('objects');
         $this->objectsTable = $objectsTable;
         $typesTable = $this->fetchTable($this->type);
-        $this->typeTable = $typesTable instanceof ObjectsTable ? $typesTable : $objectsTable;
+        $this->typeTable = $typesTable instanceof ObjectsBaseTable ? $typesTable : $objectsTable;
         /** @var \BEdita\Core\Model\Table\TranslationsTable $translationsTable */
         $translationsTable = $this->fetchTable('translations');
         $this->translationsTable = $translationsTable;
@@ -433,7 +434,9 @@ class Import
             if (!array_key_exists($key, $obj)) {
                 continue;
             }
-            $data = Hash::insert($data, $value, Hash::get($obj, $key));
+            $content = Hash::get($obj, $key);
+            $content = is_string($content) ? trim($content) : $content;
+            $data = Hash::insert($data, $value, $content);
         }
 
         return $data;
