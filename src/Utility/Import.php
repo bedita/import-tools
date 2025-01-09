@@ -298,6 +298,7 @@ class Import
      */
     public function saveObject(array $obj): ObjectEntity
     {
+        /** @var \BEdita\Core\Model\Entity\ObjectEntity $entity */
         $entity = $this->typeTable->newEmptyEntity();
         if (!empty($obj['uname']) || !empty($obj['id'])) {
             $uname = (string)Hash::get($obj, 'uname');
@@ -318,6 +319,7 @@ class Import
                 $entity = $o->getTable()->find('type', [$this->type])->where($conditions)->firstOrFail();
             }
         }
+        /** @var \BEdita\Core\Model\Entity\ObjectEntity $entity */
         $entity = $this->typeTable->patchEntity($entity, $obj);
         $entity->set('type', $this->type);
         if ($this->dryrun === true) {
