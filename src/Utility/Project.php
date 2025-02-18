@@ -150,7 +150,7 @@ class Project
     }
 
     /**
-     * Update applications api keys using api keys provided in input array
+     * Update users password hashes
      *
      * @param \Cake\Database\Connection $connection The connection
      * @param array $users Users data

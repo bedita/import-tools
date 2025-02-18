@@ -15,12 +15,13 @@ declare(strict_types=1);
 
 namespace BEdita\ImportTools\Test\TestCase\Utility;
 
+use BEdita\Core\Utility\LoggedUser;
 use BEdita\ImportTools\Utility\Project;
 use Cake\Console\ConsoleIo;
 use Cake\Datasource\ConnectionManager;
 use Cake\ORM\Locator\LocatorAwareTrait;
+use Cake\TestSuite\TestCase;
 use Cake\Utility\Hash;
-use PHPUnit\Framework\TestCase;
 
 /**
  * {@see \BEdita\ImportTools\Utility\Project} Test Case
@@ -43,8 +44,6 @@ class ProjectTest extends TestCase
         'plugin.BEdita/Core.Users',
         'plugin.BEdita/Core.Roles',
         'plugin.BEdita/Core.RolesUsers',
-        'plugin.BEdita/Core.Endpoints',
-        'plugin.BEdita/Core.Applications',
     ];
 
     /**
@@ -61,16 +60,29 @@ class ProjectTest extends TestCase
     {
         parent::setUp();
         $this->io = new class extends ConsoleIo {
-            public string $info = '';
+            public string $err = '';
+            public string $warn = '';
 
-            public function getInfo(): string
+            public function getErr(): string
             {
-                return $this->info;
+                return $this->err;
+            }
+
+            public function getWarn(): string
+            {
+                return $this->warn;
+            }
+
+            public function warning($message, int $newlines = 1): int
+            {
+                $this->warn = $message;
+
+                return parent::warning($message, $newlines);
             }
 
             public function error($message, int $newlines = 1): int
             {
-                $this->info = $message;
+                $this->err = $message;
 
                 return parent::error($message, $newlines);
             }
@@ -89,7 +101,7 @@ class ProjectTest extends TestCase
         $actual = $project->checkDatasourceConfig();
         $this->assertFalse($actual);
         $expected = 'Unable to connect to `import` datasource, please review "Datasource" configuration';
-        $this->assertSame($expected, $this->io->getInfo());
+        $this->assertSame($expected, $this->io->getErr());
     }
 
     /**
@@ -112,7 +124,7 @@ class ProjectTest extends TestCase
         $actual = $project->checkDatasourceConfig();
         $this->assertFalse($actual);
         $expected = 'Wrong connection type, please review "Datasource" configuration';
-        $this->assertSame($expected, $this->io->getInfo());
+        $this->assertSame($expected, $this->io->getErr());
     }
 
     /**
@@ -127,7 +139,7 @@ class ProjectTest extends TestCase
         $project = new Project($this->io);
         $actual = $project->checkDatasourceConfig();
         $this->assertTrue($actual);
-        $this->assertEmpty($this->io->getInfo());
+        $this->assertEmpty($this->io->getErr());
     }
 
     /**
@@ -202,5 +214,147 @@ class ProjectTest extends TestCase
         $actual = Hash::get($users, 'test-user');
         $this->assertSame('test-user', $actual->username);
         $this->assertSame('test-password-hash', $actual->password_hash);
+    }
+
+    /**
+     * Test `updateApplications` method
+     *
+     * @return void
+     */
+    public function testUpdateApplications(): void
+    {
+        /** @var \BEdita\Core\Model\Table\ApplicationsTable $table */
+        $table = $this->fetchTable('Applications');
+        /** @var \BEdita\Core\Model\Entity\Application $entity */
+        $entity = $table->newEmptyEntity();
+        $entity->name = 'test-app';
+        $table->save($entity);
+        /** @var \Cake\Database\Connection $defaultConnection */
+        $defaultConnection = ConnectionManager::get('default');
+        $project = new Project($this->io);
+        $applications = $project->loadApplications($defaultConnection);
+        $updatedApplications = $applications;
+        $updatedApplications['test-app']->api_key = 'new-api-key';
+        $updatedApplications['test-app']->client_secret = 'new-client-secret';
+        $project->updateApplications($defaultConnection, $applications);
+        $applications = $project->loadApplications($defaultConnection);
+        $actual = $applications['test-app'];
+        $this->assertSame('new-api-key', $actual->api_key);
+        $this->assertSame('new-client-secret', $actual->client_secret);
+    }
+
+    /**
+     * Test `updateUsers` method
+     *
+     * @return void
+     */
+    public function testUpdateUsers(): void
+    {
+        LoggedUser::setUserAdmin();
+        /** @var \BEdita\Core\Model\Table\UsersTable $table */
+        $table = $this->fetchTable('Users');
+        $user = $table->newEntity([]);
+        $data = [
+            'username' => 'some_unique_value',
+            'password_hash' => 'password',
+            'email' => 'my@email.com',
+            'status' => 'draft',
+        ];
+        $table->patchEntity($user, $data);
+        $table->save($user);
+        $hash = $user->password_hash;
+        unset($user->password_hash);
+        $users = [$user->username => $user];
+        /** @var \Cake\Database\Connection $defaultConnection */
+        $defaultConnection = ConnectionManager::get('default');
+        $project = new Project($this->io);
+        // do not change password hash, skip update user
+        $project->updateUsers($defaultConnection, $users);
+        $users = $project->loadUsers($defaultConnection);
+        $actual = Hash::get($users, 'some_unique_value');
+        $this->assertNotEmpty($actual);
+        $this->assertSame($hash, $actual->password_hash);
+
+        // pass password_hash, update user
+        $user->password_hash = $hash;
+        $users = [$user->username => $user];
+        $project->updateUsers($defaultConnection, $users);
+        $users = $project->loadUsers($defaultConnection);
+        $actual = Hash::get($users, 'some_unique_value');
+        $this->assertNotEmpty($actual);
+        $this->assertNotSame($hash, $actual->password_hash);
+    }
+
+    /**
+     * Test `reviewApplications` method on missing applications
+     *
+     * @return void
+     */
+    public function testReviewApplicationsMissing(): void
+    {
+        $project = new class ($this->io) extends Project {
+            public function loadApplications($connection): array
+            {
+                return $connection->configName() === 'test-import' ? ['test-app' => (object)['name' => 'test-app']] : [];
+            }
+        };
+        $actual = $project->reviewApplications();
+        $this->assertFalse($actual);
+        $this->assertSame('Some applications are missing on current project: test-app', $this->io->getErr());
+    }
+
+    /**
+     * Test `reviewApplications` method
+     *
+     * @return void
+     */
+    public function testReviewApplications(): void
+    {
+        $project = new class ($this->io) extends Project {
+            public function loadApplications($connection): array
+            {
+                return [];
+            }
+        };
+        $actual = $project->reviewApplications();
+        $this->assertTrue($actual);
+        $this->assertEmpty($this->io->getErr());
+    }
+
+    /**
+     * Test `reviewUsers` method on missing users
+     *
+     * @return void
+     */
+    public function testReviewUsersMissing(): void
+    {
+        $this->io->setInteractive(false);
+        $project = new class ($this->io) extends Project {
+            public function loadUsers($connection): array
+            {
+                return $connection->configName() === 'test-import' ? ['test-user' => (object)['username' => 'test-user']] : [];
+            }
+        };
+        $actual = $project->reviewUsers();
+        $this->assertFalse($actual);
+        $this->assertSame('Some users are missing in current project [1]', $this->io->getWarn());
+        $this->assertSame('Aborting.', $this->io->getErr());
+    }
+
+    /**
+     * Test `reviewUsers` method
+     *
+     * @return void
+     */
+    public function testReviewUsers(): void
+    {
+        $project = new class ($this->io) extends Project {
+            public function loadUsers($connection): array
+            {
+                return [];
+            }
+        };
+        $actual = $project->reviewUsers();
+        $this->assertTrue($actual);
     }
 }
