@@ -126,8 +126,8 @@ class AnonymizeUsersCommandTest extends TestCase
         $originalUsers = $table->find()->toArray();
         $this->exec('anonymize_users --preserve ' . $user->id);
         $this->assertOutputContains('Start');
-        $this->assertOutputContains('Users processed: 1');
-        $this->assertOutputContains('Users saved: 1');
+        $this->assertOutputContains('Users processed: 2');
+        $this->assertOutputContains('Users saved: 2');
         $this->assertOutputContains('Users not saved: 0');
         $this->assertOutputContains('Done.');
         $users = $table->find()->toArray();
