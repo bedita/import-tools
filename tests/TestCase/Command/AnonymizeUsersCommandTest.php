@@ -26,7 +26,7 @@ use Faker\Factory;
 /**
  * {@see \BEdita\ImportTools\Command\AnonymizeUsersCommand} Test Case
  *
- * @coversDefaultClass \BEdita\ImportTools\Command\AnonymizeUsersCommand
+ * @covers \BEdita\ImportTools\Command\AnonymizeUsersCommand
  */
 class AnonymizeUsersCommandTest extends TestCase
 {
@@ -72,7 +72,6 @@ class AnonymizeUsersCommandTest extends TestCase
      * Test buildOptionParser method
      *
      * @return void
-     * @covers ::buildOptionParser()
      */
     public function testBuildOptionParser(): void
     {
@@ -92,7 +91,6 @@ class AnonymizeUsersCommandTest extends TestCase
      * Test execute method
      *
      * @return void
-     * @covers ::execute()
      */
     public function testExecuteById(): void
     {
@@ -109,7 +107,6 @@ class AnonymizeUsersCommandTest extends TestCase
      * Test execute method
      *
      * @return void
-     * @covers ::execute()
      */
     public function testExecute(): void
     {
@@ -155,7 +152,6 @@ class AnonymizeUsersCommandTest extends TestCase
      * Test anonymize
      *
      * @return void
-     * @covers ::anonymize()
      */
     public function testAnonymize(): void
     {
@@ -176,7 +172,6 @@ class AnonymizeUsersCommandTest extends TestCase
      * Test anonymize exception
      *
      * @return void
-     * @covers ::anonymize()
      */
     public function testAnonymizeException(): void
     {
