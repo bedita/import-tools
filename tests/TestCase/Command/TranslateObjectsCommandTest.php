@@ -182,9 +182,14 @@ class TranslateObjectsCommandTest extends TestCase
         $from = 'en';
         $to = 'it';
         $command = new TranslateObjectsCommand();
+        $command->setIo(new ConsoleIo());
+        $command->setTranslator([
+            'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
+            'options' => ['auth_key' => 'secret'],
+        ]);
         $command->processObjects($from, $to);
         $actual = $command->results();
-        $expected = 'Processed 0 objects (0 errors)';
+        $expected = 'Processed 16 objects (0 errors)';
         $this->assertEquals($expected, $actual);
     }
 
@@ -237,6 +242,7 @@ class TranslateObjectsCommandTest extends TestCase
     public function testTranslatableFields(): void
     {
         $command = new TranslateObjectsCommand();
+        $command->setIo(new ConsoleIo());
         $actual = $command->translatableFields('locations');
         $this->assertNotEmpty($actual);
         $this->assertIsArray($actual);
@@ -259,6 +265,7 @@ class TranslateObjectsCommandTest extends TestCase
         $from = 'en';
         $to = 'it';
         $command = new TranslateObjectsCommand();
+        $command->setIo(new ConsoleIo());
         $command->setTranslator([
             'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
             'options' => ['auth_key' => 'secret'],
@@ -280,6 +287,7 @@ class TranslateObjectsCommandTest extends TestCase
         $from = 'en';
         $to = 'it';
         $command = new TranslateObjectsCommand();
+        $command->setIo(new ConsoleIo());
         $command->setTranslator([
             'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
             'options' => ['auth_key' => 'secret'],
