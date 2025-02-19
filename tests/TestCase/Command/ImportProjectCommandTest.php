@@ -66,7 +66,6 @@ class ImportProjectCommandTest extends TestCase
      * Test execute method
      *
      * @return void
-     * @covers ::execute()
      */
     public function testExecute(): void
     {

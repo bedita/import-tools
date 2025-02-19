@@ -127,7 +127,7 @@ class TranslateObjectsCommandTest extends TestCase
                 'translate_objects --from en --to it --dry-run 1',
                 [
                     'Translating objects from en to it [dry-run yes / limit unlimited / all types]',
-                    'Processed 0 objects (0 errors)',
+                    'Processed 16 objects (0 errors)',
                     'Done',
                 ],
                 0,
