@@ -25,11 +25,27 @@ use Cake\TestSuite\TestCase;
 /**
  * {@see \BEdita\ImportTools\Command\TranslateObjectsCommand} Test Case
  *
- * @coversDefaultClass \BEdita\ImportTools\Command\TranslateObjectsCommand
+ * @covers \BEdita\ImportTools\Command\TranslateObjectsCommand
  */
 class TranslateObjectsCommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;
+
+    /**
+     * @inheritDoc
+     */
+    public $fixtures = [
+        'plugin.BEdita/Core.ObjectTypes',
+        'plugin.BEdita/Core.PropertyTypes',
+        'plugin.BEdita/Core.Properties',
+        'plugin.BEdita/Core.Objects',
+        'plugin.BEdita/Core.Locations',
+        'plugin.BEdita/Core.Media',
+        'plugin.BEdita/Core.Profiles',
+        'plugin.BEdita/Core.Users',
+        'plugin.BEdita/Core.Roles',
+        'plugin.BEdita/Core.RolesUsers',
+    ];
 
     /**
      * @inheritDoc
@@ -111,7 +127,7 @@ class TranslateObjectsCommandTest extends TestCase
                 'translate_objects --from en --to it --dry-run 1',
                 [
                     'Translating objects from en to it [dry-run yes / limit unlimited / all types]',
-                    'Processed 0 objects (0 errors)',
+                    'Processed 16 objects (0 errors)',
                     'Done',
                 ],
                 0,
@@ -136,9 +152,6 @@ class TranslateObjectsCommandTest extends TestCase
      * @param array $input Input to provide
      * @return void
      * @dataProvider executeProvider
-     * @covers ::buildOptionParser()
-     * @covers ::execute()
-     * @covers ::__construct()
      */
     public function testExecute(string $cmd, array $expected, int $error, array $config, array $input): void
     {
@@ -163,17 +176,20 @@ class TranslateObjectsCommandTest extends TestCase
      * Test `processObjects` method
      *
      * @return void
-     * @covers ::processObjects()
-     * @covers ::results()
      */
     public function testProcessObjects(): void
     {
         $from = 'en';
         $to = 'it';
         $command = new TranslateObjectsCommand();
+        $command->setIo(new ConsoleIo());
+        $command->setTranslator([
+            'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
+            'options' => ['auth_key' => 'secret'],
+        ]);
         $command->processObjects($from, $to);
         $actual = $command->results();
-        $expected = 'Processed 0 objects (0 errors)';
+        $expected = 'Processed 16 objects (0 errors)';
         $this->assertEquals($expected, $actual);
     }
 
@@ -181,12 +197,6 @@ class TranslateObjectsCommandTest extends TestCase
      * Test `processObject` method
      *
      * @return void
-     * @covers ::processObject()
-     * @covers ::results()
-     * @covers ::getDryRun()
-     * @covers ::setDryRun()
-     * @covers ::getIo()
-     * @covers ::setIo()
      */
     public function testProcessObjectDryRun(): void
     {
@@ -208,7 +218,6 @@ class TranslateObjectsCommandTest extends TestCase
      * Test `objectsIterator` method
      *
      * @return void
-     * @covers ::objectsIterator()
      */
     public function testObjectsIterator(): void
     {
@@ -219,7 +228,6 @@ class TranslateObjectsCommandTest extends TestCase
      * Test `translate` method
      *
      * @return void
-     * @covers ::translate()
      */
     public function testTranslate(): void
     {
@@ -230,19 +238,26 @@ class TranslateObjectsCommandTest extends TestCase
      * Test `translatableFields` method
      *
      * @return void
-     * @covers ::translatableFields()
      */
     public function testTranslatableFields(): void
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $command = new TranslateObjectsCommand();
+        $command->setIo(new ConsoleIo());
+        $actual = $command->translatableFields('locations');
+        $this->assertNotEmpty($actual);
+        $this->assertIsArray($actual);
+        $this->assertSame(['address', 'body', 'description', 'title'], $actual);
+        // use cache
+        $actual = $command->translatableFields('locations');
+        $this->assertNotEmpty($actual);
+        $this->assertIsArray($actual);
+        $this->assertSame(['address', 'body', 'description', 'title'], $actual);
     }
 
     /**
      * Test `singleTranslation` method
      *
      * @return void
-     * @covers ::singleTranslation()
-     * @covers ::setTranslator()
      */
     public function testSingleTranslation(): void
     {
@@ -250,6 +265,7 @@ class TranslateObjectsCommandTest extends TestCase
         $from = 'en';
         $to = 'it';
         $command = new TranslateObjectsCommand();
+        $command->setIo(new ConsoleIo());
         $command->setTranslator([
             'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
             'options' => ['auth_key' => 'secret'],
@@ -264,8 +280,6 @@ class TranslateObjectsCommandTest extends TestCase
      * Test `multiTranslation` method
      *
      * @return void
-     * @covers ::multiTranslation()
-     * @covers ::setTranslator()
      */
     public function testMultipleTranslation(): void
     {
@@ -273,6 +287,7 @@ class TranslateObjectsCommandTest extends TestCase
         $from = 'en';
         $to = 'it';
         $command = new TranslateObjectsCommand();
+        $command->setIo(new ConsoleIo());
         $command->setTranslator([
             'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
             'options' => ['auth_key' => 'secret'],

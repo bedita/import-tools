@@ -22,7 +22,9 @@ use Cake\Command\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
+use Cake\Database\Expression\QueryExpression;
 use Cake\ORM\Query;
+use Cake\ORM\Table;
 use Cake\Utility\Text;
 use Faker\Factory;
 use Faker\Generator;
@@ -99,7 +101,7 @@ class AnonymizeUsersCommand extends Command
         $faker = Factory::create('it_IT');
         $processed = $saved = $errors = 0;
         /** @var \BEdita\Core\Model\Entity\User $user */
-        foreach ($this->objectsGenerator($query) as $user) {
+        foreach ($this->objectsGenerator($query, $table) as $user) {
             $this->anonymize($faker, $user, $table, $io, $processed, $saved, $errors);
         }
         $io->out(sprintf('Users processed: %s', $processed));
@@ -147,16 +149,26 @@ class AnonymizeUsersCommand extends Command
      * Objects generator.
      *
      * @param \Cake\ORM\Query $query Query object
+     * @param \Cake\ORM\Table $table Table object
+     * @param int $limit The page size
      * @return \Generator
      */
-    protected function objectsGenerator(Query $query): \Generator
+    protected function objectsGenerator(Query $query, Table $table, int $limit = 1000): \Generator
     {
-        $pageSize = 1000;
-        $pages = ceil($query->count() / $pageSize);
-        for ($page = 1; $page <= $pages; $page++) {
-            yield from $query
-                ->page($page, $pageSize)
-                ->toArray();
+        $lastId = 0;
+        while (true) {
+            $q = clone $query;
+            $q = $q->where(fn(QueryExpression $exp): QueryExpression => $exp->gt($table->aliasField('id'), $lastId));
+            $q = $q->limit($limit);
+            $results = $q->all();
+            if ($results->isEmpty()) {
+                break;
+            }
+            foreach ($results as $entity) {
+                $lastId = $entity->id;
+
+                yield $entity;
+            }
         }
     }
 }

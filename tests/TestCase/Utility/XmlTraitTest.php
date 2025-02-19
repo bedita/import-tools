@@ -15,7 +15,7 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Test\TestCase\Utility;
 
 use BEdita\ImportTools\Utility\XmlTrait;
-use PHPUnit\Framework\TestCase;
+use Cake\TestSuite\TestCase;
 
 /**
  * {@see \BEdita\ImportTools\Utility\XmlTrait} Test Case

@@ -108,7 +108,10 @@ if (!TableRegistry::getTableLocator() instanceof TableLocator) {
 
 Security::setSalt('wIYveuyasdNTn3ikclAP6msatcNj76a6iuOG');
 
-(new Migrator())->run(['plugin' => 'BEdita/Core']);
+(new Migrator())->runMany([
+    ['plugin' => 'BEdita/Core', 'connection' => 'test'],
+    ['plugin' => 'BEdita/Core', 'connection' => 'test-import'],
+]);
 
 const TEST_FILES = __DIR__ . DS . 'files';
 const WWW_ROOT = TEST_FILES; // Necessary to avoid warning when instantiating LocalAdapter.
