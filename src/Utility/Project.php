@@ -56,6 +56,7 @@ class Project
     /**
      * Constructor
      *
+     * @param \Cake\Console\ConsoleIo $io Console IO
      * @return void
      */
     public function __construct(ConsoleIo $io)

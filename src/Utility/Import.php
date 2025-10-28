@@ -479,23 +479,24 @@ class Import
      */
     public function findImported(Table $table, string $extraKey, string $extraValue): ?Query
     {
-        return $table->find('available')->where(function (QueryExpression $exp) use ($table, $extraKey, $extraValue): QueryExpression {
-            return $exp->and([
-                $exp->isNotNull($table->aliasField('extra')),
-                $exp->eq(
-                    new FunctionExpression(
-                        'JSON_UNQUOTE',
-                        [
-                            new FunctionExpression(
-                                'JSON_EXTRACT',
-                                ['extra' => 'identifier', sprintf('$.%s', $extraKey)]
-                            ),
-                        ]
+        return $table->find('available')
+            ->where(function (QueryExpression $exp) use ($table, $extraKey, $extraValue): QueryExpression {
+                return $exp->and([
+                    $exp->isNotNull($table->aliasField('extra')),
+                    $exp->eq(
+                        new FunctionExpression(
+                            'JSON_UNQUOTE',
+                            [
+                                new FunctionExpression(
+                                    'JSON_EXTRACT',
+                                    ['extra' => 'identifier', sprintf('$.%s', $extraKey)]
+                                ),
+                            ]
+                        ),
+                        new FunctionExpression('JSON_UNQUOTE', [json_encode($extraValue)])
                     ),
-                    new FunctionExpression('JSON_UNQUOTE', [json_encode($extraValue)])
-                ),
-            ]);
-        });
+                ]);
+            });
     }
 
     /**
@@ -505,8 +506,10 @@ class Import
      * @param string $expression XPath expression
      * @return string
      */
-    public function cleanHtml(string $html, string $expression = "//@*[local-name() != 'href' and local-name() != 'id' and local-name() != 'src']"): string
-    {
+    public function cleanHtml(
+        string $html,
+        string $expression = "//@*[local-name() != 'href' and local-name() != 'id' and local-name() != 'src']"
+    ): string {
         $dom = new DOMDocument();
         $metaUtf8 = '<meta http-equiv="content-type" content="text/html; charset=utf-8">';
         $dom->loadHTML($metaUtf8 . $html, LIBXML_NOWARNING);

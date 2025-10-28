@@ -124,12 +124,25 @@ class AnonymizeUsersCommand extends Command
      * @param int $errors Errors
      * @return void
      */
-    public function anonymize(Generator $faker, User $user, UsersTable $table, ConsoleIo $io, int &$processed, int &$saved, int &$errors): void
-    {
+    public function anonymize(
+        Generator $faker,
+        User $user,
+        UsersTable $table,
+        ConsoleIo $io,
+        int &$processed,
+        int &$saved,
+        int &$errors
+    ): void {
         $io->verbose(sprintf('Processing user %s [username: %s, email: %s]', $user->id, $user->username, $user->email));
         $user->name = $faker->firstName();
         $user->surname = $faker->lastName();
-        $user->email = sprintf('%s.%s.%d@%s', Text::slug($user->name), Text::slug($user->surname), $user->id, $faker->safeEmailDomain());
+        $user->email = sprintf(
+            '%s.%s.%d@%s',
+            Text::slug($user->name),
+            Text::slug($user->surname),
+            $user->id,
+            $faker->safeEmailDomain()
+        );
         $user->uname = sprintf('user-%s', Text::uuid());
         $user->username = $user->email;
         $processed++;
