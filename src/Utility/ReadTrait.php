@@ -36,8 +36,12 @@ trait ReadTrait
      * @param string $element Element name for XML files
      * @return \Generator<array<array-key, string>>
      */
-    protected function readItem(string $sourceType, string $path, bool $assoc = true, string $element = 'post'): \Generator
-    {
+    protected function readItem(
+        string $sourceType,
+        string $path,
+        bool $assoc = true,
+        string $element = 'post'
+    ): \Generator {
         if (!in_array($sourceType, ['csv', 'xml'])) {
             throw new \InvalidArgumentException(sprintf('Invalid source type "%s"', $sourceType));
         }
