@@ -165,6 +165,35 @@ class TranslateObjectsCommandTest extends TestCase
     }
 
     /**
+     * Test `processObjects` method with limit and dry-run
+     *
+     * @return void
+     */
+    public function testProcessObjectsWithLimit(): void
+    {
+        $from = 'en';
+        $to = 'it';
+        $command = new class() extends TranslateObjectsCommand {
+            public function setLimit(string $limit): void
+            {
+                $this->limit = $limit;
+            }
+        };
+        $command->setIo(new ConsoleIo());
+        $command->setTranslator([
+            'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
+            'options' => ['auth_key' => 'secret'],
+        ]);
+        $command->setDryRun(true);
+        $command->setLimit('5');
+        $command->processObjects($from, $to);
+        $actual = $command->results();
+        $expected = sprintf('Processed %d objects (0 errors)', 5);
+        $this->assertEquals($expected, $actual);
+        $this->assertTrue($command->getDryRun());
+    }
+
+    /**
      * Test `processObjects` method
      *
      * @return void
@@ -182,33 +211,6 @@ class TranslateObjectsCommandTest extends TestCase
         $command->processObjects($from, $to);
         $actual = $command->results();
         $expected = 'Processed 16 objects (0 errors)';
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * Test `processObjects` method with limit
-     *
-     * @return void
-     */
-    public function testProcessObjectsWithLimit(): void
-    {
-        $from = 'en';
-        $to = 'it';
-        $command = new class () extends TranslateObjectsCommand {
-            public function setLimit(string $limit): void
-            {
-                $this->limit = $limit;
-            }
-        };
-        $command->setIo(new ConsoleIo());
-        $command->setTranslator([
-            'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
-            'options' => ['auth_key' => 'secret'],
-        ]);
-        $command->setLimit('5');
-        $command->processObjects($from, $to);
-        $actual = $command->results();
-        $expected = sprintf('Processed %d objects (0 errors)', 5);
         $this->assertEquals($expected, $actual);
     }
 
