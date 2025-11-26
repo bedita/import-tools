@@ -15,14 +15,21 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Test\TestCase\Command;
 
 use BEdita\ImportTools\Command\ImportCommand;
+use BEdita\ImportTools\Utility\Import;
+use BEdita\ImportTools\Utility\ReadTrait;
+use BEdita\ImportTools\Utility\XmlTrait;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 
 /**
  * {@see \BEdita\ImportTools\Command\ImportCommand} Test Case
  */
 #[CoversClass(ImportCommand::class)]
+#[UsesClass(Import::class)]
+#[UsesClass(ReadTrait::class)]
+#[UsesClass(XmlTrait::class)]
 class ImportCommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;

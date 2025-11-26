@@ -15,15 +15,18 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Test\TestCase\Utility;
 
 use BEdita\ImportTools\Utility\ReadTrait;
+use BEdita\ImportTools\Utility\XmlTrait;
 use Cake\TestSuite\TestCase;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use RuntimeException;
 
 /**
  * {@see \BEdita\ImportTools\Utility\ReadTrait} Test Case
  */
 #[CoversClass(ReadTrait::class)]
+#[UsesClass(XmlTrait::class)]
 class ReadTraitTest extends TestCase
 {
     use ReadTrait;

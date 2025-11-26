@@ -15,16 +15,19 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Test\TestCase\Command;
 
 use BEdita\ImportTools\Command\ImportProjectCommand;
+use BEdita\ImportTools\Utility\Project;
 use Cake\Command\Command;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Datasource\ConnectionManager;
 use Cake\TestSuite\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 
 /**
  * {@see \BEdita\ImportTools\Command\ImportProjectCommand} Test Case
  */
 #[CoversClass(ImportProjectCommand::class)]
+#[UsesClass(Project::class)]
 class ImportProjectCommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;
