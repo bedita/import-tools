@@ -19,12 +19,12 @@ use Cake\Command\Command;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Datasource\ConnectionManager;
 use Cake\TestSuite\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * {@see \BEdita\ImportTools\Command\ImportProjectCommand} Test Case
- *
- * @covers \BEdita\ImportTools\Command\ImportProjectCommand
  */
+#[CoversClass(ImportProjectCommand::class)]
 class ImportProjectCommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;
@@ -32,7 +32,7 @@ class ImportProjectCommandTest extends TestCase
     /**
      * @inheritDoc
      */
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.BEdita/Core.ObjectTypes',
         'plugin.BEdita/Core.Objects',
         'plugin.BEdita/Core.Locations',
@@ -46,19 +46,16 @@ class ImportProjectCommandTest extends TestCase
     /**
      * The command used in test
      *
-     * @var \BEdita\ImportTools\Command\ImportProjectCommand
+     * @var \BEdita\ImportTools\Command\ImportProjectCommand|null
      */
-    protected $command = null;
+    protected ?ImportProjectCommand $command = null;
 
     /**
-     * setUp method
-     *
-     * @return void
+     * @inheritDoc
      */
     protected function setUp(): void
     {
         parent::setUp();
-        $this->useCommandRunner();
         $this->command = new ImportProjectCommand();
     }
 

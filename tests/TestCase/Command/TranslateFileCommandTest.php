@@ -15,35 +15,25 @@ declare(strict_types=1);
 
 namespace BEdita\ImportTools\Test\TestCase\Command;
 
+use BEdita\ImportTools\Command\TranslateFileCommand;
 use Cake\Command\Command;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * {@see \BEdita\ImportTools\Command\TranslateFileCommand} Test Case
- *
- * @coversDefaultClass \BEdita\ImportTools\Command\TranslateFileCommand
  */
+#[CoversClass(TranslateFileCommand::class)]
 class TranslateFileCommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;
 
     /**
-     * @inheritDoc
-     */
-    public function setUp(): void
-    {
-        parent::setUp();
-        $this->useCommandRunner();
-    }
-
-    /**
      * Test `execute` with code error on no file
      *
      * @return void
-     * @covers ::buildOptionParser()
-     * @covers ::execute()
      */
     public function testExecuteNoFile(): void
     {
@@ -55,12 +45,10 @@ class TranslateFileCommandTest extends TestCase
      * Test `execute` with code error on no translator
      *
      * @return void
-     * @covers ::buildOptionParser()
-     * @covers ::execute()
      */
     public function testExecuteNoTranslator(): void
     {
-        $input = sprintf('%s/files/input.txt', ROOT);
+        $input = TEST_FILES . DS . 'input.txt';
         $this->exec('translate_file -i ' . $input . ' -o output.txt -f en -t it -e mytranslator');
         $this->assertErrorContains('No translator engine "mytranslator" is set in configuration');
     }
@@ -69,13 +57,11 @@ class TranslateFileCommandTest extends TestCase
      * Test `execute` with code success
      *
      * @return void
-     * @covers ::buildOptionParser()
-     * @covers ::execute()
      */
     public function testExecute(): void
     {
-        $input = sprintf('%s/files/input.txt', ROOT);
-        $output = sprintf('%s/files/output.txt', ROOT);
+        $input = TEST_FILES . DS . 'input.txt';
+        $output = TEST_FILES . DS . 'output.txt';
         Configure::write('Translators.dummy', [
             'class' => 'BEdita\ImportTools\Test\TestCase\Core\I18n\DummyTranslator',
             'options' => ['auth_key' => 'secret'],

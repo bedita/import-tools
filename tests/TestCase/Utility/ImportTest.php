@@ -16,6 +16,7 @@ namespace BEdita\ImportTools\Test\TestCase\Utility;
 
 use BEdita\Core\Filesystem\Adapter\LocalAdapter;
 use BEdita\Core\Filesystem\FilesystemRegistry;
+use BEdita\Core\Model\Enum\ObjectEntityStatus;
 use BEdita\Core\Utility\LoggedUser;
 use BEdita\ImportTools\Utility\Import;
 use Cake\Http\Exception\BadRequestException;
@@ -23,12 +24,13 @@ use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\TestSuite\TestCase;
 use Cake\Utility\Hash;
 use League\Flysystem\StorageAttributes;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * {@see \BEdita\ImportTools\Utility\Import} Test Case
- *
- * @covers \BEdita\ImportTools\Utility\Import
  */
+#[CoversClass(Import::class)]
 class ImportTest extends TestCase
 {
     use LocatorAwareTrait;
@@ -36,7 +38,7 @@ class ImportTest extends TestCase
     /**
      * @inheritDoc
      */
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.BEdita/Core.ObjectTypes',
         'plugin.BEdita/Core.Objects',
         'plugin.BEdita/Core.Locations',
@@ -87,7 +89,7 @@ class ImportTest extends TestCase
      *
      * @return array
      */
-    public function saveObjectsProvider(): array
+    public static function saveObjectsProvider(): array
     {
         return [
             'wrong type' => [
@@ -150,8 +152,8 @@ class ImportTest extends TestCase
      * @param bool $dryrun Dry run
      * @param array $expected Expected
      * @return void
-     * @dataProvider saveObjectsProvider
      */
+    #[DataProvider('saveObjectsProvider')]
     public function testSaveObjects(string $filename, string $type, string $parent, bool $dryrun, array $expected): void
     {
         $import = new Import($filename, $type, $parent, $dryrun);
@@ -166,13 +168,13 @@ class ImportTest extends TestCase
      *
      * @return array
      */
-    public function saveObjectProvider(): array
+    public static function saveObjectProvider(): array
     {
         $data = [
             'title' => 'test title',
             'description' => 'test description',
             'body' => 'test body',
-            'status' => 'on',
+            'status' => ObjectEntityStatus::On,
             'uname' => 'test-uname',
             'lang' => 'en',
         ];
@@ -215,8 +217,8 @@ class ImportTest extends TestCase
      * @param array $data Data
      * @param array $expected Expected
      * @return void
-     * @dataProvider saveObjectProvider
      */
+    #[DataProvider('saveObjectProvider')]
     public function testSaveObject(string $f, string $t, string $p, bool $dr, array $data, array $expected): void
     {
         if ($p !== '') {
@@ -224,7 +226,7 @@ class ImportTest extends TestCase
             $foldersTable = $this->fetchTable('folders');
             if (!$foldersTable->exists(['uname' => $p])) {
                 /** @var \BEdita\Core\Model\Entity\ObjectEntity $folder */
-                $folder = $foldersTable->newEntity(['uname' => $p, 'status' => 'on']);
+                $folder = $foldersTable->newEntity(['uname' => $p, 'status' => ObjectEntityStatus::On]);
                 $folder->type = 'folders';
                 $folder = $foldersTable->save($folder);
                 $p = $folder->uname;
@@ -246,7 +248,6 @@ class ImportTest extends TestCase
      * Test `saveObject` method when exists
      *
      * @return void
-     * @dataProvider saveObjectProvider
      */
     public function testSaveObjectWhenExists(): void
     {
@@ -255,7 +256,7 @@ class ImportTest extends TestCase
             'title' => 'test title',
             'description' => 'test description',
             'body' => 'test body',
-            'status' => 'on',
+            'status' => ObjectEntityStatus::On,
             'uname' => 'test-uname',
             'lang' => 'en',
         ];
@@ -276,12 +277,11 @@ class ImportTest extends TestCase
      * Test `saveObject` method when exists
      *
      * @return void
-     * @dataProvider saveObjectProvider
      */
     public function testSaveObjectWhenExistsWrongType(): void
     {
         $exception = new BadRequestException(
-            'Object "test-uname" already present with another type "events"'
+            'Object "test-uname" already present with another type "events"',
         );
         $this->expectExceptionObject($exception);
         $import = new Import(TEST_FILES . DS . 'articles1.csv', 'documents', '', false);
@@ -289,7 +289,7 @@ class ImportTest extends TestCase
             'title' => 'test title',
             'description' => 'test description',
             'body' => 'test body',
-            'status' => 'on',
+            'status' => ObjectEntityStatus::On,
             'uname' => 'test-uname',
             'lang' => 'en',
         ];
@@ -320,7 +320,7 @@ class ImportTest extends TestCase
         ]);
         $mountManager = FilesystemRegistry::getMountManager();
         $recursive = false;
-        $default = collection($mountManager->listContents($directory, $recursive)->toArray())
+        collection($mountManager->listContents($directory, $recursive)->toArray())
             ->reject(function (StorageAttributes $object) {
                 return $object->isDir();
             })
@@ -339,7 +339,7 @@ class ImportTest extends TestCase
         $id = LoggedUser::id();
         $imageData = [
             'title' => $imagename,
-            'status' => 'on',
+            'status' => ObjectEntityStatus::On,
             'media_property' => false,
             'created_by' => $id,
             'modified_by' => $id,
@@ -355,10 +355,10 @@ class ImportTest extends TestCase
         $media = $import->saveMedia(
             $mediaTable,
             $imageData,
-            $streamData
+            $streamData,
         );
         static::assertEquals($imagename, $media->title);
-        static::assertEquals('on', $media->status);
+        static::assertEquals(ObjectEntityStatus::On, $media->status);
         static::assertEquals($id, $media->created_by);
         static::assertEquals($id, $media->modified_by);
         static::assertEquals($imagename, $media->streams[0]->file_name);
@@ -377,7 +377,7 @@ class ImportTest extends TestCase
         $import = new Import(null, 'images', null, true);
         $imageData = [
             'title' => $imagename,
-            'status' => 'on',
+            'status' => ObjectEntityStatus::On,
         ];
         $streamData = [
             'file_name' => $imagename,
@@ -390,10 +390,10 @@ class ImportTest extends TestCase
         $media = $import->saveMedia(
             $mediaTable,
             $imageData,
-            $streamData
+            $streamData,
         );
         static::assertEquals($imagename, $media->title);
-        static::assertEquals('on', $media->status);
+        static::assertEquals(ObjectEntityStatus::On, $media->status);
     }
 
     /**
@@ -406,12 +406,12 @@ class ImportTest extends TestCase
         /** @var \BEdita\Core\Model\Table\ObjectsTable $objectsTable */
         $objectsTable = $this->fetchTable('Objects');
         /** @var \BEdita\Core\Model\Entity\ObjectEntity $entity */
-        $entity = $objectsTable->newEntity(['title' => 'test one', 'status' => 'on']);
+        $entity = $objectsTable->newEntity(['title' => 'test one', 'status' => ObjectEntityStatus::On]);
         $entity->type = 'documents';
         $entity = $objectsTable->save($entity);
 
         /** @var \BEdita\Core\Model\Entity\ObjectEntity $related */
-        $related = $objectsTable->newEntity(['title' => 'test two', 'status' => 'on']);
+        $related = $objectsTable->newEntity(['title' => 'test two', 'status' => ObjectEntityStatus::On]);
         $related->type = 'documents';
         $related = $objectsTable->save($related);
 
@@ -422,7 +422,7 @@ class ImportTest extends TestCase
         $actual = $import->setRelated('test', $entity, [$related]);
         $actual = $objectsTable->get($actual[0]);
         static::assertEquals('test two', $actual->title);
-        static::assertEquals('on', $actual->status);
+        static::assertEquals(ObjectEntityStatus::On, $actual->status);
     }
 
     /**
@@ -430,7 +430,7 @@ class ImportTest extends TestCase
      *
      * @return array
      */
-    public function saveTranslationsWithErrorProvider(): array
+    public static function saveTranslationsWithErrorProvider(): array
     {
         $filename = TEST_FILES . DS . 'translations1.csv';
         $type = 'translations';
@@ -491,8 +491,8 @@ class ImportTest extends TestCase
      * @param bool $dr Dry run
      * @param array $exp Expected
      * @return void
-     * @dataProvider saveTranslationsWithErrorProvider
      */
+    #[DataProvider('saveTranslationsWithErrorProvider')]
     public function testSaveTranslationsWithError(string $f, string $t, string $p, bool $dr, array $exp): void
     {
         $import = new Import($f, $t, $p, $dr);
@@ -507,7 +507,7 @@ class ImportTest extends TestCase
      *
      * @return array
      */
-    public function saveTranslationsProvider(): array
+    public static function saveTranslationsProvider(): array
     {
         return [
             'import articles and translations with dry run true' => [
@@ -553,8 +553,8 @@ class ImportTest extends TestCase
      * @param bool $trdr Translations dry run
      * @param array $exp Expected
      * @return void
-     * @dataProvider saveTranslationsProvider
      */
+    #[DataProvider('saveTranslationsProvider')]
     public function testSaveTranslations(string $arf, string $trf, bool $trdr, array $exp): void
     {
         $import = new Import($arf, 'documents', '', false);
@@ -571,7 +571,7 @@ class ImportTest extends TestCase
      *
      * @return array
      */
-    public function saveTranslationProvider(): array
+    public static function saveTranslationProvider(): array
     {
         $data = [
             'translation_title' => 'titolo test',
@@ -601,15 +601,15 @@ class ImportTest extends TestCase
      * Test `saveTranslation` method
      *
      * @return void
-     * @dataProvider saveTranslationProvider
      */
+    #[DataProvider('saveTranslationProvider')]
     public function testSaveTranslation(string $f, bool $dr, array $data, array $expected): void
     {
         $uname = (string)Hash::get($data, 'object_uname');
         $objectsTable = $this->fetchTable('objects');
         if (!$objectsTable->exists(compact('uname'))) {
             /** @var \BEdita\Core\Model\Entity\ObjectEntity $doc */
-            $doc = $objectsTable->newEntity(['uname' => $uname, 'status' => 'on']);
+            $doc = $objectsTable->newEntity(['uname' => $uname, 'status' => ObjectEntityStatus::On]);
             $doc->type = 'documents';
             $objectsTable->save($doc);
         }
@@ -629,7 +629,7 @@ class ImportTest extends TestCase
         }
     }
 
-    public function translatedFieldsProvider(): array
+    public static function translatedFieldsProvider(): array
     {
         return [
             'translated fields by prefix translation_' => [
@@ -666,8 +666,8 @@ class ImportTest extends TestCase
      * Test `translatedFields` method
      *
      * @return void
-     * @dataProvider translatedFieldsProvider
      */
+    #[DataProvider('translatedFieldsProvider')]
     public function testTranslatedFields(array $data, array $expected): void
     {
         $import = new Import();

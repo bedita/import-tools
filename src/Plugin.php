@@ -26,5 +26,5 @@ class Plugin extends BasePlugin
      *
      * @var bool
      */
-    protected $routesEnabled = false;
+    protected bool $routesEnabled = false;
 }

@@ -25,6 +25,7 @@ use Cake\Core\Configure;
 use Cake\Core\InstanceConfigTrait;
 use Cake\Database\Expression\QueryExpression;
 use Cake\Utility\Hash;
+use Exception;
 
 /**
  * TranslateObjects command.
@@ -57,7 +58,7 @@ class TranslateObjectsCommand extends Command
 {
     use InstanceConfigTrait;
 
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'langsMap' => [
             'en' => 'en-US',
             'it' => 'it',
@@ -69,16 +70,16 @@ class TranslateObjectsCommand extends Command
         'status' => 'draft',
         'dryRun' => false,
     ];
-    protected $ok;
-    protected $error;
-    protected $io;
-    protected $dryRun;
-    protected $defaultStatus;
-    protected $translatableFields = [];
-    protected $translator;
-    protected $langsMap;
-    protected $limit;
-    protected $type;
+    protected int $ok = 0;
+    protected int $error = 0;
+    protected ConsoleIo $io;
+    protected bool $dryRun = false;
+    protected string $defaultStatus;
+    protected array $translatableFields = [];
+    protected object $translator;
+    protected array $langsMap;
+    protected ?string $limit = null;
+    protected ?string $type = null;
 
     /**
      * @inheritDoc
@@ -88,7 +89,7 @@ class TranslateObjectsCommand extends Command
         parent::__construct();
         $cfg = (array)Configure::read('TranslateObjects');
         $cfg = array_merge($this->_defaultConfig, $cfg);
-        $this->defaultStatus = (string)Hash::get($cfg, 'status');
+        $this->defaultStatus = Hash::get($cfg, 'status');
         $this->setDryRun(Hash::get($cfg, 'dryRun') === 1);
         $this->langsMap = (array)Hash::get($cfg, 'langsMap');
     }
@@ -173,8 +174,8 @@ class TranslateObjectsCommand extends Command
                 $to,
                 $this->dryRun ? 'yes' : 'no',
                 $this->limit ? sprintf('limit %s', $this->limit) : 'unlimited',
-                $this->type ? sprintf('type %s', $this->type) : 'all types'
-            )
+                $this->type ? sprintf('type %s', $this->type) : 'all types',
+            ),
         );
         $to = $this->langsMap[$to];
         if ($this->getIo()->ask('Do you want to continue [Y/n]?', 'n') !== 'Y') {
@@ -264,7 +265,7 @@ class TranslateObjectsCommand extends Command
     {
         $conditions = [];
         foreach ($this->objectsIterator($conditions, $from, $to) as $object) {
-            if ($this->limit !== null && ($this->ok + $this->error >= $this->limit)) {
+            if ($this->limit !== null && ($this->ok + $this->error >= intval($this->limit))) {
                 break;
             }
             $this->processObject($object, $from, $to);
@@ -288,7 +289,7 @@ class TranslateObjectsCommand extends Command
             }
             $this->getIo()->verbose(sprintf('Translated object %s', $object->id));
             $this->ok++;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->getIo()->error(sprintf('Error translating object %s: %s', $object->id, $e->getMessage()));
             $this->error++;
         }
@@ -314,19 +315,19 @@ class TranslateObjectsCommand extends Command
             [
                 $table->aliasField('deleted') => 0,
                 $table->aliasField('lang') => $lang,
-            ]
+            ],
         );
         $query = $table->find('all')
             ->where($conditions)
             ->notMatching('Translations', function ($q) use ($to) {
                 return $q->where(['Translations.lang' => $to]);
             })
-            ->orderAsc($table->aliasField('id'))
+            ->orderByAsc($table->aliasField('id'))
             ->limit(500);
         $lastId = 0;
         while (true) {
             $q = clone $query;
-            $q = $q->where(fn (QueryExpression $exp): QueryExpression => $exp->gt($table->aliasField('id'), $lastId));
+            $q = $q->where(fn(QueryExpression $exp): QueryExpression => $exp->gt($table->aliasField('id'), $lastId));
             $results = $q->all();
             if ($results->isEmpty()) {
                 break;
@@ -348,7 +349,7 @@ class TranslateObjectsCommand extends Command
      * @param string $to The language to translate to
      * @return void
      */
-    public function translate($object, $from, $to): void
+    public function translate(ObjectEntity $object, string $from, string $to): void
     {
         $id = $object->id;
         $type = $object->type;
@@ -422,7 +423,7 @@ class TranslateObjectsCommand extends Command
      * @param string $to The language to translate to
      * @return string
      */
-    public function singleTranslation($text, string $from, string $to): string
+    public function singleTranslation(mixed $text, string $from, string $to): string
     {
         $response = $this->translator->translate([$text], $from, $to);
         $response = json_decode($response, true);
@@ -438,7 +439,7 @@ class TranslateObjectsCommand extends Command
      * @param string $to The language to translate to
      * @return array
      */
-    public function multiTranslation($texts, string $from, string $to): array
+    public function multiTranslation(array $texts, string $from, string $to): array
     {
         $response = $this->translator->translate($texts, $from, $to);
         $response = json_decode($response, true);

@@ -21,12 +21,13 @@ use Cake\Console\ConsoleIo;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * {@see \BEdita\ImportTools\Command\TranslateObjectsCommand} Test Case
- *
- * @covers \BEdita\ImportTools\Command\TranslateObjectsCommand
  */
+#[CoversClass(TranslateObjectsCommand::class)]
 class TranslateObjectsCommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;
@@ -34,7 +35,7 @@ class TranslateObjectsCommandTest extends TestCase
     /**
      * @inheritDoc
      */
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.BEdita/Core.ObjectTypes',
         'plugin.BEdita/Core.PropertyTypes',
         'plugin.BEdita/Core.Properties',
@@ -48,20 +49,11 @@ class TranslateObjectsCommandTest extends TestCase
     ];
 
     /**
-     * @inheritDoc
-     */
-    public function setUp(): void
-    {
-        parent::setUp();
-        $this->useCommandRunner();
-    }
-
-    /**
      * Data provider for `testExecute` test case.
      *
      * @return array
      */
-    public function executeProvider(): array
+    public static function executeProvider(): array
     {
         $conf = [
             'TranslateObjects' => [
@@ -85,7 +77,7 @@ class TranslateObjectsCommandTest extends TestCase
             ],
             'wrong from' => [
                 'translate_objects --from ita',
-                ['"ita" is not a valid value for --from. Please use one of "en, it, de"'],
+                ['`ita` is not a valid value for `--from`. Please use one of `en|it|de`'],
                 1,
                 $conf,
                 [],
@@ -99,7 +91,7 @@ class TranslateObjectsCommandTest extends TestCase
             ],
             'wrong to' => [
                 'translate_objects --from en --to ita',
-                ['"ita" is not a valid value for --to. Please use one of "en, it, de"'],
+                ['`ita` is not a valid value for `--to`. Please use one of `en|it|de`'],
                 1,
                 $conf,
                 [],
@@ -151,8 +143,8 @@ class TranslateObjectsCommandTest extends TestCase
      * @param array $config Configuration to set
      * @param array $input Input to provide
      * @return void
-     * @dataProvider executeProvider
      */
+    #[DataProvider('executeProvider')]
     public function testExecute(string $cmd, array $expected, int $error, array $config, array $input): void
     {
         foreach ($config as $key => $value) {

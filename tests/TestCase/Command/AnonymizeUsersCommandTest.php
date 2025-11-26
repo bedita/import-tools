@@ -14,20 +14,22 @@ declare(strict_types=1);
  */
 namespace BEdita\ImportTools\Test\TestCase\Command;
 
+use BEdita\Core\Model\Enum\ObjectEntityStatus;
 use BEdita\Core\Model\Table\UsersTable;
 use BEdita\Core\Utility\LoggedUser;
 use BEdita\ImportTools\Command\AnonymizeUsersCommand;
 use Cake\Console\ConsoleIo;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Datasource\EntityInterface;
+use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\TestSuite\TestCase;
 use Faker\Factory;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * {@see \BEdita\ImportTools\Command\AnonymizeUsersCommand} Test Case
- *
- * @covers \BEdita\ImportTools\Command\AnonymizeUsersCommand
  */
+#[CoversClass(AnonymizeUsersCommand::class)]
 class AnonymizeUsersCommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;
@@ -35,7 +37,7 @@ class AnonymizeUsersCommandTest extends TestCase
     /**
      * @inheritDoc
      */
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.BEdita/Core.ObjectTypes',
         'plugin.BEdita/Core.PropertyTypes',
         'plugin.BEdita/Core.Properties',
@@ -52,19 +54,16 @@ class AnonymizeUsersCommandTest extends TestCase
     /**
      * The command used in test
      *
-     * @var \BEdita\ImportTools\Command\AnonymizeUsersCommand
+     * @var \BEdita\ImportTools\Command\AnonymizeUsersCommand|null
      */
-    protected $command = null;
+    protected ?AnonymizeUsersCommand $command = null;
 
     /**
-     * setUp method
-     *
-     * @return void
+     * @inheritDoc
      */
     protected function setUp(): void
     {
         parent::setUp();
-        $this->useCommandRunner();
         $this->command = new AnonymizeUsersCommand();
     }
 
@@ -118,7 +117,7 @@ class AnonymizeUsersCommandTest extends TestCase
         $user->email = 'gustavo@bedita.net';
         $user->name = 'Gustavo';
         $user->surname = 'Supporto';
-        $user->status = 'on';
+        $user->status = ObjectEntityStatus::On;
         $table->saveOrFail($user);
         $originalUsers = $table->find()->toArray();
         $this->exec('anonymize_users --preserve ' . $user->id);
@@ -196,7 +195,7 @@ class AnonymizeUsersCommandTest extends TestCase
 
             public function saveOrFail($entity, $options = []): EntityInterface
             {
-                throw new \Cake\Datasource\Exception\RecordNotFoundException();
+                throw new RecordNotFoundException();
             }
         };
         $this->command->anonymize($faker, $user, $myTable, new ConsoleIo(), $processed, $saved, $errors);

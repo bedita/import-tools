@@ -16,6 +16,8 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Utility;
 
 use Cake\Core\InstanceConfigTrait;
+use Generator;
+use InvalidArgumentException;
 
 /**
  * Trait for reading files.
@@ -40,10 +42,10 @@ trait ReadTrait
         string $sourceType,
         string $path,
         bool $assoc = true,
-        string $element = 'post'
-    ): \Generator {
+        string $element = 'post',
+    ): Generator {
         if (!in_array($sourceType, ['csv', 'xml'])) {
-            throw new \InvalidArgumentException(sprintf('Invalid source type "%s"', $sourceType));
+            throw new InvalidArgumentException(sprintf('Invalid source type "%s"', $sourceType));
         }
         $method = 'read' . ucfirst($sourceType);
         $params = $sourceType === 'csv' ? [$path, $assoc] : [$path, $element];

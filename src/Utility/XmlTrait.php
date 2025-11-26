@@ -15,6 +15,9 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Utility;
 
 use Cake\Core\InstanceConfigTrait;
+use Generator;
+use RuntimeException;
+use Throwable;
 use XMLReader;
 
 /**
@@ -51,7 +54,7 @@ trait XmlTrait
      * @param string $element Element name for XML files
      * @return \Generator<array<array-key, string>>
      */
-    protected function readXml(string $path, string $element): \Generator
+    protected function readXml(string $path, string $element): Generator
     {
         try {
             $reader = new XMLReader();
@@ -71,8 +74,8 @@ trait XmlTrait
                     $reader->next();
                 }
             }
-        } catch (\Exception $e) {
-            throw new \RuntimeException(sprintf('Cannot open file: %s', $path), 0, $e);
+        } catch (Throwable $t) {
+            throw new RuntimeException(sprintf('Cannot open file: %s', $path), 0, $t);
         }
     }
 }

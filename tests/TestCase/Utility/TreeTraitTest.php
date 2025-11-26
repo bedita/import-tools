@@ -14,16 +14,17 @@ declare(strict_types=1);
  */
 namespace BEdita\ImportTools\Test\TestCase\Utility;
 
+use BEdita\Core\Model\Enum\ObjectEntityStatus;
 use BEdita\Core\Utility\LoggedUser;
 use BEdita\ImportTools\Utility\TreeTrait;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\TestSuite\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * {@see \BEdita\ImportTools\Utility\TreeTrait} Test Case
- *
- * @covers \BEdita\ImportTools\Utility\TreeTrait
  */
+#[CoversClass(TreeTrait::class)]
 class TreeTraitTest extends TestCase
 {
     use LocatorAwareTrait;
@@ -32,7 +33,7 @@ class TreeTraitTest extends TestCase
     /**
      * @inheritDoc
      */
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.BEdita/Core.ObjectTypes',
         'plugin.BEdita/Core.PropertyTypes',
         'plugin.BEdita/Core.Properties',
@@ -83,7 +84,7 @@ class TreeTraitTest extends TestCase
         /** @var \BEdita\Core\Model\Table\FoldersTable $foldersTable */
         $foldersTable = $this->fetchTable('Folders');
         /** @var \BEdita\Core\Model\Entity\Folder $parent */
-        $parent = $foldersTable->newEntity(['uname' => $uname, 'status' => 'on']);
+        $parent = $foldersTable->newEntity(['uname' => $uname, 'status' => ObjectEntityStatus::On]);
         $parent = $foldersTable->save($parent);
         /** @var \BEdita\Core\Model\Entity\Folder $parent */
         $parent = $foldersTable->find()->where(['uname' => $uname])->contain('Children')->first();
@@ -92,7 +93,7 @@ class TreeTraitTest extends TestCase
         /** @var \BEdita\Core\Model\Table\ObjectsTable $objectsTable */
         $objectsTable = $this->fetchTable('Objects');
         /** @var \BEdita\Core\Model\Entity\ObjectEntity $child */
-        $child = $objectsTable->newEntity(['title' => 'test child', 'status' => 'on']);
+        $child = $objectsTable->newEntity(['title' => 'test child', 'status' => ObjectEntityStatus::On]);
         $child->type = 'documents';
         $child = $objectsTable->save($child);
 

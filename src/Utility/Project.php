@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 namespace BEdita\ImportTools\Utility;
 
+use BEdita\Core\Model\Table\ApplicationsTable;
+use BEdita\Core\Model\Table\UsersTable;
 use Cake\Console\ConsoleIo;
 use Cake\Database\Connection;
 use Cake\Datasource\ConnectionManager;
@@ -31,27 +33,27 @@ class Project
     /**
      * @var \Cake\Database\Connection|null
      */
-    protected $defaultConnection;
+    protected ?Connection $defaultConnection = null;
 
     /**
      * @var \Cake\Database\Connection|null
      */
-    protected $importConnection;
+    protected ?Connection $importConnection = null;
 
     /**
      * @var \Cake\Console\ConsoleIo
      */
-    protected $io;
+    protected ConsoleIo $io;
 
     /**
      * @var \BEdita\Core\Model\Table\ApplicationsTable
      */
-    protected $Applications;
+    protected ApplicationsTable $Applications;
 
     /**
      * @var \BEdita\Core\Model\Table\UsersTable
      */
-    protected $Users;
+    protected UsersTable $Users;
 
     /**
      * Constructor
@@ -166,7 +168,7 @@ class Project
             $query = sprintf(
                 "UPDATE users SET password_hash = '%s' WHERE username = '%s'",
                 $user->password_hash,
-                $username
+                $username,
             );
             $connection->execute($query);
         }

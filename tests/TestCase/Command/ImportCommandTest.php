@@ -17,12 +17,12 @@ namespace BEdita\ImportTools\Test\TestCase\Command;
 use BEdita\ImportTools\Command\ImportCommand;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * {@see \BEdita\ImportTools\Command\ImportCommand} Test Case
- *
- * @coversDefaultClass \BEdita\ImportTools\Command\ImportCommand
  */
+#[CoversClass(ImportCommand::class)]
 class ImportCommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;
@@ -30,7 +30,7 @@ class ImportCommandTest extends TestCase
     /**
      * @inheritDoc
      */
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.BEdita/Core.ObjectTypes',
         'plugin.BEdita/Core.PropertyTypes',
         'plugin.BEdita/Core.Properties',
@@ -42,19 +42,16 @@ class ImportCommandTest extends TestCase
     /**
      * The command used in test
      *
-     * @var \BEdita\ImportTools\Command\ImportCommand
+     * @var \BEdita\ImportTools\Command\ImportCommand|null
      */
-    protected $command = null;
+    protected ?ImportCommand $command = null;
 
     /**
-     * setUp method
-     *
-     * @return void
+     * @inheritDoc
      */
     protected function setUp(): void
     {
         parent::setUp();
-        $this->useCommandRunner();
         $this->command = new ImportCommand();
     }
 
@@ -62,7 +59,6 @@ class ImportCommandTest extends TestCase
      * Test buildOptionParser method
      *
      * @return void
-     * @covers ::buildOptionParser()
      */
     public function testBuildOptionParser(): void
     {
@@ -88,7 +84,6 @@ class ImportCommandTest extends TestCase
      * Test execute method
      *
      * @return void
-     * @covers ::execute()
      */
     public function testExecute(): void
     {
@@ -108,7 +103,6 @@ class ImportCommandTest extends TestCase
      * Test execute method with parent option
      *
      * @return void
-     * @covers ::execute()
      */
     public function testExecuteOnMissingFile(): void
     {
