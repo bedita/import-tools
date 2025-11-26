@@ -31,3 +31,4 @@ Icon?
 ehthumbs.db
 Thumbs.db
 .phpunit.cache/test-results
+tests/files/output.txt
