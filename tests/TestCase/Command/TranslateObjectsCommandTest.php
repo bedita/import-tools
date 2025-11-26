@@ -173,7 +173,7 @@ class TranslateObjectsCommandTest extends TestCase
     {
         $from = 'en';
         $to = 'it';
-        $command = new class() extends TranslateObjectsCommand {
+        $command = new class () extends TranslateObjectsCommand {
             public function setLimit(string $limit): void
             {
                 $this->limit = $limit;
