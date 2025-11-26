@@ -117,7 +117,6 @@ $app->pluginBootstrap();
 
 Router::reload();
 Router::fullBaseUrl('http://localhost');
-//Plugin::getCollection()->add(new ImportToolsPlugin(['middleware' => true]));
 
 // clear all before running tests
 TableRegistry::getTableLocator()->clear();
