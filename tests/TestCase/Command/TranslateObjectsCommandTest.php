@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Test\TestCase\Command;
 
 use BEdita\Core\Model\Entity\Location;
+use BEdita\Core\Model\Entity\ObjectEntity;
 use BEdita\ImportTools\Command\TranslateObjectsCommand;
 use Cake\Console\ConsoleIo;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
@@ -23,6 +24,7 @@ use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
 
 /**
  * {@see \BEdita\ImportTools\Command\TranslateObjectsCommand} Test Case
@@ -233,6 +235,30 @@ class TranslateObjectsCommandTest extends TestCase
         $expected = 'Processed 1 objects (0 errors)';
         $this->assertEquals($expected, $actual);
         $this->assertTrue($command->getDryRun());
+    }
+
+    /**
+     * Test `processObject` method with exception
+     *
+     * @return void
+     */
+    public function testProcessObjectException(): void
+    {
+        $from = 'en';
+        $to = 'it';
+        $object = new Location();
+        $object->set('id', 999);
+        $command = new class () extends TranslateObjectsCommand {
+            public function translate(ObjectEntity $object, string $from, string $to): void
+            {
+                throw new RuntimeException();
+            }
+        };
+        $command->setIo(new ConsoleIo());
+        $command->processObject($object, $from, $to);
+        $actual = $command->results();
+        $expected = 'Processed 1 objects (1 errors)';
+        $this->assertEquals($expected, $actual);
     }
 
     /**
