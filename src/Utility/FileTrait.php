@@ -77,9 +77,11 @@ trait FileTrait
             return [$fh, $closerFactory($fh)];
         }
 
+        // @codeCoverageIgnoreStart
         if (!class_exists(FilesystemRegistry::class)) {
             throw new RuntimeException(sprintf('Unsupported stream wrapper protocol: %s', $path));
         }
+        // @codeCoverageIgnoreEnd
 
         $fh = FilesystemRegistry::getMountManager()->readStream($path);
 
