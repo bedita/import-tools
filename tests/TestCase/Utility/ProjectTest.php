@@ -15,19 +15,26 @@ declare(strict_types=1);
 
 namespace BEdita\ImportTools\Test\TestCase\Utility;
 
+use BEdita\Core\Model\Enum\ObjectEntityStatus;
+use BEdita\Core\Model\Table\UsersTable;
 use BEdita\Core\Utility\LoggedUser;
 use BEdita\ImportTools\Utility\Project;
 use Cake\Console\ConsoleIo;
+use Cake\Database\ExpressionInterface;
 use Cake\Datasource\ConnectionManager;
+use Cake\ORM\Association;
 use Cake\ORM\Locator\LocatorAwareTrait;
+use Cake\ORM\Query\SelectQuery;
+use Cake\ORM\Table;
 use Cake\TestSuite\TestCase;
 use Cake\Utility\Hash;
+use Closure;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * {@see \BEdita\ImportTools\Utility\Project} Test Case
- *
- * @covers \BEdita\ImportTools\Utility\Project
  */
+#[CoversClass(Project::class)]
 class ProjectTest extends TestCase
 {
     use LocatorAwareTrait;
@@ -35,7 +42,7 @@ class ProjectTest extends TestCase
     /**
      * @inheritDoc
      */
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.BEdita/Core.ObjectTypes',
         'plugin.BEdita/Core.Objects',
         'plugin.BEdita/Core.Locations',
@@ -181,29 +188,43 @@ class ProjectTest extends TestCase
             {
                 parent::__construct($io);
                 /** @var \BEdita\Core\Model\Table\UsersTable $users */
-                $users = new class {
-                    public function setConnection($connection): void
-                    {
-                    }
-
-                    public function find(): object
+                $users = new class extends UsersTable {
+                    public function setConnection($connection): static
                     {
                         return $this;
                     }
 
-                    public function select($fields): object
+                    public function find(string $type = 'all', ...$args): SelectQuery
                     {
-                        return $this;
+                        return $this->query();
                     }
 
-                    public function toArray(): array
+                    public function query(): SelectQuery
                     {
-                        return [
-                            new class {
-                                public string $username = 'test-user';
-                                public string $password_hash = 'test-password-hash';
-                            },
-                        ];
+                        $query = new class extends SelectQuery {
+                            public function __construct()
+                            {
+                            }
+
+                            public function select(
+                                ExpressionInterface|Table|Association|Closure|array|string|float|int $fields = [],
+                                bool $overwrite = false,
+                            ): static {
+                                return $this;
+                            }
+
+                            public function toArray(): array
+                            {
+                                return [
+                                    new class {
+                                        public string $username = 'test-user';
+                                        public string $password_hash = 'test-password-hash';
+                                    },
+                                ];
+                            }
+                        };
+
+                        return $query;
                     }
                 };
                 $this->Users = $users;
@@ -258,7 +279,7 @@ class ProjectTest extends TestCase
             'username' => 'some_unique_value',
             'password_hash' => 'password',
             'email' => 'my@email.com',
-            'status' => 'draft',
+            'status' => ObjectEntityStatus::Draft,
         ];
         $table->patchEntity($user, $data);
         $table->save($user);
@@ -295,7 +316,7 @@ class ProjectTest extends TestCase
         $project = new class ($this->io) extends Project {
             public function loadApplications($connection): array
             {
-                return $connection->configName() === 'test-import' ? ['test-app' => (object)['name' => 'test-app']] : [];
+                return $connection->configName() === 'test_import' ? ['test-app' => (object)['name' => 'test-app']] : [];
             }
         };
         $actual = $project->reviewApplications();
@@ -332,7 +353,7 @@ class ProjectTest extends TestCase
         $project = new class ($this->io) extends Project {
             public function loadUsers($connection): array
             {
-                return $connection->configName() === 'test-import' ? ['test-user' => (object)['username' => 'test-user']] : [];
+                return $connection->configName() === 'test_import' ? ['test-user' => (object)['username' => 'test-user']] : [];
             }
         };
         $actual = $project->reviewUsers();

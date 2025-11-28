@@ -15,13 +15,18 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Test\TestCase\Utility;
 
 use BEdita\ImportTools\Utility\ReadTrait;
+use BEdita\ImportTools\Utility\XmlTrait;
 use Cake\TestSuite\TestCase;
+use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
+use RuntimeException;
 
 /**
  * {@see \BEdita\ImportTools\Utility\ReadTrait} Test Case
- *
- * @covers \BEdita\ImportTools\Utility\ReadTrait
  */
+#[CoversClass(ReadTrait::class)]
+#[UsesClass(XmlTrait::class)]
 class ReadTraitTest extends TestCase
 {
     use ReadTrait;
@@ -44,7 +49,7 @@ class ReadTraitTest extends TestCase
      */
     public function testReadItemInvalidType(): void
     {
-        $expected = new \InvalidArgumentException('Invalid source type "invalid"');
+        $expected = new InvalidArgumentException('Invalid source type "invalid"');
         $this->expectExceptionObject($expected);
         foreach ($this->readItem('invalid', 'path') as $item) {
             $item = array_filter($item);
@@ -60,7 +65,7 @@ class ReadTraitTest extends TestCase
     {
         $path = TEST_FILES . DS . 'not-found.csv';
 
-        $expected = new \RuntimeException(sprintf('Cannot open file: %s', $path));
+        $expected = new RuntimeException(sprintf('Cannot open file: %s', $path));
         $this->expectExceptionObject($expected);
 
         $this->readItem('csv', $path)->next();

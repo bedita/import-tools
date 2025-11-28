@@ -26,8 +26,10 @@ use Cake\Database\Expression\QueryExpression;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Cake\Utility\Text;
+use Exception;
 use Faker\Factory;
 use Faker\Generator;
+use Generator as GlobalGenerator;
 
 /**
  * Anonymize users command.
@@ -131,7 +133,7 @@ class AnonymizeUsersCommand extends Command
         ConsoleIo $io,
         int &$processed,
         int &$saved,
-        int &$errors
+        int &$errors,
     ): void {
         $io->verbose(sprintf('Processing user %s [username: %s, email: %s]', $user->id, $user->username, $user->email));
         $user->name = $faker->firstName();
@@ -141,7 +143,7 @@ class AnonymizeUsersCommand extends Command
             Text::slug($user->name),
             Text::slug($user->surname),
             $user->id,
-            $faker->safeEmailDomain()
+            $faker->safeEmailDomain(),
         );
         $user->uname = sprintf('user-%s', Text::uuid());
         $user->username = $user->email;
@@ -151,7 +153,7 @@ class AnonymizeUsersCommand extends Command
             $this->log(sprintf('[OK] User %s updated', $user->id), 'debug');
             $saved++;
             $io->verbose(sprintf('Saved %s as [username: %s, email: %s]', $user->id, $user->username, $user->email));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->log(sprintf('[KO] User %s not updated', $user->id), 'error');
             $errors++;
             $io->verbose(sprintf('Error %s as [username: %s, email: %s]', $user->id, $user->username, $user->email));
@@ -166,7 +168,7 @@ class AnonymizeUsersCommand extends Command
      * @param int $limit The page size
      * @return \Generator
      */
-    protected function objectsGenerator(Query $query, Table $table, int $limit = 1000): \Generator
+    protected function objectsGenerator(Query $query, Table $table, int $limit = 1000): GlobalGenerator
     {
         $lastId = 0;
         while (true) {

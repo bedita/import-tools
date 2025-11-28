@@ -118,8 +118,8 @@ class ImportCommand extends Command
                 $import->processed,
                 $import->saved,
                 $import->skipped,
-                $import->errors
-            )
+                $import->errors,
+            ),
         );
         $io->out('Done, bye!');
         $io->out('---------------------------------------');

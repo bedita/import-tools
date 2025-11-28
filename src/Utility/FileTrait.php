@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Utility;
 
 use BEdita\Core\Filesystem\FilesystemRegistry;
+use RuntimeException;
+use Throwable;
 
 /**
  * Utilities to help reading files from either the local filesystem or an adapter configured in BEdita.
@@ -52,7 +54,7 @@ trait FileTrait
          * @param resource|null $fh Resource to be closed.
          * @return callable(): void Function to be used for closing the resource.
          */
-        $closerFactory = fn ($resource): callable => function () use ($resource): void {
+        $closerFactory = fn($resource): callable => function () use ($resource): void {
             if (is_resource($resource)) {
                 fclose($resource);
             }
@@ -66,18 +68,20 @@ trait FileTrait
             try {
                 $fh = fopen($path, 'rb');
                 if ($fh === false) {
-                    trigger_error(sprintf('fopen(%s): falied to open stream', $path), E_USER_ERROR);
+                    throw new RuntimeException(sprintf('fopen(%s): failed to open stream', $path));
                 }
-            } catch (\Exception $previous) {
-                throw new \RuntimeException(sprintf('Cannot open file: %s', $path), 0, $previous);
+            } catch (Throwable $previous) {
+                throw new RuntimeException(sprintf('Cannot open file: %s', $path), 0, $previous);
             }
 
             return [$fh, $closerFactory($fh)];
         }
 
+        // @codeCoverageIgnoreStart
         if (!class_exists(FilesystemRegistry::class)) {
-            trigger_error(sprintf('Unsupported stream wrapper protocol: %s', $path), E_USER_ERROR);
+            throw new RuntimeException(sprintf('Unsupported stream wrapper protocol: %s', $path));
         }
+        // @codeCoverageIgnoreEnd
 
         $fh = FilesystemRegistry::getMountManager()->readStream($path);
 

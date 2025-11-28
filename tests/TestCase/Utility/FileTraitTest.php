@@ -4,15 +4,19 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Test\TestCase\Utility;
 
 use BEdita\ImportTools\Utility\FileTrait;
+use Exception;
 use League\Flysystem\UnableToReadFile;
 use League\Flysystem\UnableToResolveFilesystemMount;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
  * {@see \BEdita\ImportTools\Utility\FileTrait} Test Case
- *
- * @covers \BEdita\ImportTools\Utility\FileTrait
  */
-class FileTraitTest extends \PHPUnit\Framework\TestCase
+#[CoversClass(FileTrait::class)]
+class FileTraitTest extends TestCase
 {
     use FileTrait;
 
@@ -21,7 +25,7 @@ class FileTraitTest extends \PHPUnit\Framework\TestCase
      *
      * @return array<string, array{string|\Exception, string}>
      */
-    public function readFileStreamProvider(): array
+    public static function readFileStreamProvider(): array
     {
         $example = file_get_contents(TEST_FILES . DS . 'example.txt');
 
@@ -30,7 +34,7 @@ class FileTraitTest extends \PHPUnit\Framework\TestCase
             'file (`file://` stream wrapper)' => [$example, 'file://' . TEST_FILES . DS . 'example.txt'],
             'file (filesystem registry)' => [$example, 'test-data://example.txt'],
             'file not found (local)' => [
-                new \RuntimeException(sprintf('Cannot open file: %s', TEST_FILES . DS . 'not-found.csv')),
+                new RuntimeException(sprintf('Cannot open file: %s', TEST_FILES . DS . 'not-found.csv')),
                 TEST_FILES . DS . 'not-found.csv',
             ],
             'file not found (filesystem registry)' => [
@@ -50,11 +54,11 @@ class FileTraitTest extends \PHPUnit\Framework\TestCase
      * @param string|\Exception $expected Expected outcome.
      * @param string $path Path for input.
      * @return void
-     * @dataProvider readFileStreamProvider()
      */
+    #[DataProvider('readFileStreamProvider')]
     public function testReadFileStream($expected, string $path): void
     {
-        if ($expected instanceof \Exception) {
+        if ($expected instanceof Exception) {
             $this->expectExceptionObject($expected);
         }
 

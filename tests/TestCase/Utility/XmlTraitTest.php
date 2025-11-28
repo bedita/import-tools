@@ -16,12 +16,13 @@ namespace BEdita\ImportTools\Test\TestCase\Utility;
 
 use BEdita\ImportTools\Utility\XmlTrait;
 use Cake\TestSuite\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use RuntimeException;
 
 /**
  * {@see \BEdita\ImportTools\Utility\XmlTrait} Test Case
- *
- * @covers \BEdita\ImportTools\Utility\XmlTrait
  */
+#[CoversClass(XmlTrait::class)]
 class XmlTraitTest extends TestCase
 {
     use XmlTrait;
@@ -35,7 +36,7 @@ class XmlTraitTest extends TestCase
     {
         $path = TEST_FILES . DS . 'not-found.xml';
 
-        $expected = new \RuntimeException(sprintf('Cannot open file: %s', $path));
+        $expected = new RuntimeException(sprintf('Cannot open file: %s', $path));
         $this->expectExceptionObject($expected);
 
         $this->readXml($path, 'post')->next();

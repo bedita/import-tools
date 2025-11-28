@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Utility;
 
 use Cake\Core\InstanceConfigTrait;
+use Generator;
 
 /**
  * Trait for share Csv stuff.
@@ -50,7 +51,7 @@ trait CsvTrait
      * @param bool $assoc If `true` uses first CSV row as column names, thus yielding associative arrays. Otherwise, all rows are yielded and columns are indexed by their positions.
      * @return \Generator<array<array-key, string>>
      */
-    protected function readCsv(string $path, bool $assoc = true): \Generator
+    protected function readCsv(string $path, bool $assoc = true): Generator
     {
         $delimiter = $this->getConfig('csv.delimiter', ',');
         $enclosure = $this->getConfig('csv.enclosure', '"');

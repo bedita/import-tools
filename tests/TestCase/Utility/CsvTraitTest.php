@@ -15,13 +15,17 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Test\TestCase\Utility;
 
 use BEdita\ImportTools\Utility\CsvTrait;
+use BEdita\ImportTools\Utility\XmlTrait;
 use Cake\TestSuite\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
+use RuntimeException;
 
 /**
  * {@see \BEdita\ImportTools\Utility\CsvTrait} Test Case
- *
- * @covers \BEdita\ImportTools\Utility\CsvTrait
  */
+#[CoversClass(CsvTrait::class)]
+#[UsesClass(XmlTrait::class)]
 class CsvTraitTest extends TestCase
 {
     use CsvTrait;
@@ -46,7 +50,7 @@ class CsvTraitTest extends TestCase
     {
         $path = TEST_FILES . DS . 'not-found.csv';
 
-        $expected = new \RuntimeException(sprintf('Cannot open file: %s', $path));
+        $expected = new RuntimeException(sprintf('Cannot open file: %s', $path));
         $this->expectExceptionObject($expected);
 
         $this->readCsv($path)->next();

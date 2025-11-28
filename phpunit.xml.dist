@@ -4,9 +4,11 @@
     processIsolation="false"
     stopOnFailure="false"
     bootstrap="./tests/bootstrap.php"
-    forceCoversAnnotation="true"
+    requireCoverageMetadata="true"
+    beStrictAboutCoverageMetadata="true"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.1/phpunit.xsd"
+    cacheDirectory=".phpunit.cache">
   <php>
     <ini name="memory_limit" value="-1"/>
     <ini name="apc.enable_cli" value="1"/>
@@ -17,11 +19,11 @@
     </testsuite>
   </testsuites>
   <extensions>
-    <extension class="\Cake\TestSuite\Fixture\PHPUnitExtension"/>
+    <bootstrap class="\Cake\TestSuite\Fixture\Extension\PHPUnitExtension"/>
   </extensions>
-  <coverage>
+  <source>
     <include>
       <directory suffix=".php">./src/</directory>
     </include>
-  </coverage>
+  </source>
 </phpunit>

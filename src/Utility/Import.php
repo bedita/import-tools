@@ -22,6 +22,7 @@ use BEdita\Core\Model\Entity\Translation;
 use BEdita\Core\Model\Table\ObjectsBaseTable;
 use BEdita\Core\Model\Table\ObjectsTable;
 use BEdita\Core\Model\Table\TranslationsTable;
+use Cake\Core\InstanceConfigTrait;
 use Cake\Database\Expression\FunctionExpression;
 use Cake\Database\Expression\QueryExpression;
 use Cake\Datasource\EntityInterface;
@@ -33,6 +34,7 @@ use Cake\ORM\Table;
 use Cake\Utility\Hash;
 use DOMDocument;
 use DOMXPath;
+use Exception;
 
 /**
  * Import utility
@@ -63,6 +65,7 @@ use DOMXPath;
  */
 class Import
 {
+    use InstanceConfigTrait;
     use LocatorAwareTrait;
     use LogTrait;
     use ReadTrait;
@@ -209,8 +212,9 @@ class Import
         ?string $type = 'objects',
         ?string $parent = null,
         ?bool $dryrun = false,
-        ?array $options = ['mapping' => [], 'type' => 'csv', 'assoc' => true, 'element' => 'post']
+        ?array $options = ['mapping' => [], 'type' => 'csv', 'assoc' => true, 'element' => 'post'],
     ) {
+        $this->setConfig($this->_defaultConfig);
         $this->filename = $filename;
         $this->type = $type;
         $this->parent = $parent;
@@ -242,7 +246,7 @@ class Import
      * @param array $streamData Stream data
      * @return \Cake\Datasource\EntityInterface|bool
      */
-    public function saveMedia($mediaTable, array $mediaData, array $streamData): EntityInterface|bool
+    public function saveMedia(Table $mediaTable, array $mediaData, array $streamData): EntityInterface|bool
     {
         // create media
         $media = $mediaTable->newEntity($mediaData);
@@ -264,7 +268,7 @@ class Import
         $action = new SaveEntityAction(['table' => $streamsTable]);
         $data = $streamData;
         $entity->set('object_id', $id);
-        $stream = $action(compact('entity', 'data'));
+        $action(compact('entity', 'data'));
         $mediaTable->loadInto($media, ['Streams']);
 
         return $media;
@@ -281,7 +285,7 @@ class Import
             try {
                 $data = $this->transform($obj, $this->sourceMapping);
                 $this->saveObject($data);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->errorsDetails[] = $e->getMessage();
                 $this->errors++;
             } finally {
@@ -312,8 +316,8 @@ class Import
                         sprintf(
                             'Object "%s" already present with another type "%s"',
                             $conditions[$identifier],
-                            $o->type
-                        )
+                            $o->type,
+                        ),
                     );
                 }
                 $entity = $o->getTable()->find('type', [$this->type])->where($conditions)->firstOrFail();
@@ -365,7 +369,7 @@ class Import
         foreach ($this->readItem($this->sourceType, $this->filename, $this->assoc, $this->element) as $translation) {
             try {
                 $this->saveTranslation($translation);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->errorsDetails[] = $e->getMessage();
                 $this->errors++;
             } finally {
@@ -489,11 +493,11 @@ class Import
                             [
                                 new FunctionExpression(
                                     'JSON_EXTRACT',
-                                    ['extra' => 'identifier', sprintf('$.%s', $extraKey)]
+                                    ['extra' => 'identifier', sprintf('$.%s', $extraKey)],
                                 ),
-                            ]
+                            ],
                         ),
-                        new FunctionExpression('JSON_UNQUOTE', [json_encode($extraValue)])
+                        new FunctionExpression('JSON_UNQUOTE', [json_encode($extraValue)]),
                     ),
                 ]);
             });
@@ -508,7 +512,7 @@ class Import
      */
     public function cleanHtml(
         string $html,
-        string $expression = "//@*[local-name() != 'href' and local-name() != 'id' and local-name() != 'src']"
+        string $expression = "//@*[local-name() != 'href' and local-name() != 'id' and local-name() != 'src']",
     ): string {
         $dom = new DOMDocument();
         $metaUtf8 = '<meta http-equiv="content-type" content="text/html; charset=utf-8">';

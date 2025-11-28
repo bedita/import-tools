@@ -29,7 +29,6 @@ use Cake\Cache\Cache;
 use Cake\Cache\Engine\ArrayEngine;
 use Cake\Cache\Engine\NullEngine;
 use Cake\Core\Configure;
-use Cake\Core\Plugin;
 use Cake\Datasource\ConnectionManager;
 use Cake\Log\Engine\ConsoleLog;
 use Cake\Log\Log;
@@ -38,30 +37,21 @@ use Cake\Routing\Router;
 use Cake\Utility\Security;
 use Migrations\TestSuite\Migrator;
 
-$findRoot = function ($root) {
-    do {
-        $lastRoot = $root;
-        $root = dirname($root);
-        if (is_dir($root . '/vendor/cakephp/cakephp')) {
-            return $root;
-        }
-    } while ($root !== $lastRoot);
-    throw new Exception('Cannot find the root of the application, unable to run tests');
-};
-$root = $findRoot(__FILE__);
-unset($findRoot);
-chdir($root);
+require dirname(__DIR__) . '/vendor/autoload.php';
 
-require_once 'vendor/cakephp/cakephp/src/basics.php';
-require_once 'vendor/autoload.php';
+define('ROOT', dirname(__DIR__));
+define('CAKE_CORE_INCLUDE_PATH', ROOT . DS . 'vendor' . DS . 'cakephp' . DS . 'cakephp');
+define('CORE_PATH', CAKE_CORE_INCLUDE_PATH . DS);
+define('CAKE', CORE_PATH . 'src' . DS);
 
-define('ROOT', $root . DS . 'tests' . DS);
-define('APP', ROOT . 'TestApp' . DS);
+require CORE_PATH . 'config' . DS . 'bootstrap.php';
+require CAKE . 'functions.php';
+
+define('APP', ROOT . DS . 'tests' . DS . 'TestApp' . DS);
 define('TMP', sys_get_temp_dir() . DS);
 define('LOGS', ROOT . DS . 'logs' . DS);
-define('CONFIG', ROOT . DS . 'config' . DS);
+define('CONFIG', ROOT . DS . 'tests' . DS . 'config' . DS);
 define('CACHE', TMP . 'cache' . DS);
-define('CORE_PATH', $root . DS . 'vendor' . DS . 'cakephp' . DS . 'cakephp' . DS);
 
 Configure::write('debug', true);
 Configure::write('App', [
@@ -76,7 +66,7 @@ Configure::write('App', [
 Log::setConfig([
     'debug' => [
         'engine' => ConsoleLog::class,
-        'levels' => ['notice', 'info', 'debug'],
+        'levels' => ['notice', 'info'],
     ],
     'error' => [
         'engine' => ConsoleLog::class,
@@ -87,7 +77,7 @@ Log::setConfig([
 Cache::drop('_bedita_object_types_');
 Cache::drop('_bedita_core_');
 Cache::setConfig([
-    '_cake_core_' => ['engine' => ArrayEngine::class],
+    '_cake_translations_' => ['engine' => ArrayEngine::class],
     '_cake_model_' => ['engine' => ArrayEngine::class],
     '_bedita_object_types_' => ['className' => NullEngine::class],
     '_bedita_core_' => ['className' => NullEngine::class],
@@ -99,8 +89,8 @@ if (!getenv('db_dsn')) {
 }
 ConnectionManager::setConfig('test', ['url' => getenv('db_dsn')]);
 ConnectionManager::alias('test', 'default');
-ConnectionManager::setConfig('test-import', ['url' => getenv('db_dsn')]);
-ConnectionManager::alias('test-import', 'import');
+ConnectionManager::setConfig('test_import', ['url' => getenv('db_dsn')]);
+ConnectionManager::alias('test_import', 'import');
 
 if (!TableRegistry::getTableLocator() instanceof TableLocator) {
     TableRegistry::setTableLocator(new TableLocator());
@@ -110,7 +100,7 @@ Security::setSalt('wIYveuyasdNTn3ikclAP6msatcNj76a6iuOG');
 
 (new Migrator())->runMany([
     ['plugin' => 'BEdita/Core', 'connection' => 'test'],
-    ['plugin' => 'BEdita/Core', 'connection' => 'test-import'],
+    ['plugin' => 'BEdita/Core', 'connection' => 'test_import'],
 ]);
 
 const TEST_FILES = __DIR__ . DS . 'files';
@@ -121,13 +111,12 @@ FilesystemRegistry::setConfig('test-data', [
     'path' => TEST_FILES,
 ]);
 
-$app = new Application(dirname(__DIR__) . '/config');
+$app = new Application(__DIR__ . '/config');
 $app->bootstrap();
 $app->pluginBootstrap();
 
 Router::reload();
 Router::fullBaseUrl('http://localhost');
-Plugin::getCollection()->add(new \BEdita\ImportTools\Plugin(['middleware' => true]));
 
 // clear all before running tests
 TableRegistry::getTableLocator()->clear();
