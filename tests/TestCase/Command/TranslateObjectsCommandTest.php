@@ -268,7 +268,19 @@ class TranslateObjectsCommandTest extends TestCase
      */
     public function testObjectsIterator(): void
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $cmd = new class () extends TranslateObjectsCommand {
+            public function __construct()
+            {
+                parent::__construct();
+                $this->type = 'users';
+            }
+        };
+        $catch = false;
+        $conditions = [];
+        foreach ($cmd->objectsIterator($conditions, 'en', 'it') as $object) {
+            $catch = true;
+        }
+        static::assertFalse($catch, 'objectsIterator find no users');
     }
 
     /**

@@ -320,7 +320,7 @@ class Import
                         ),
                     );
                 }
-                $entity = $o->getTable()->find('type', [$this->type])->where($conditions)->firstOrFail();
+                $entity = $o->getTable()->find('type', value: [$this->type])->where($conditions)->firstOrFail();
             }
         }
         /** @var \BEdita\Core\Model\Entity\ObjectEntity $entity */

@@ -180,7 +180,7 @@ class AnonymizeUsersCommand extends Command
                 break;
             }
             foreach ($results as $entity) {
-                $lastId = $entity->id;
+                $lastId = $entity->get('id');
 
                 yield $entity;
             }

@@ -308,7 +308,9 @@ class TranslateObjectsCommand extends Command
         /** @var \BEdita\Core\Model\Table\ObjectsTable $table */
         $table = $this->fetchTable('objects');
         if ($this->type !== null) {
-            $conditions[$table->aliasField('object_type_id')] = $table->objectType($this->type)->id;
+            /** @var \BEdita\Core\Model\Behavior\ObjectTypeBehavior $objectTypeBehavior */
+            $objectTypeBehavior = $table->getBehavior('ObjectType');
+            $conditions[$table->aliasField('object_type_id')] = $objectTypeBehavior->objectType($this->type)->id;
         }
         $conditions = array_merge(
             $conditions,
@@ -334,7 +336,7 @@ class TranslateObjectsCommand extends Command
             }
 
             foreach ($results as $entity) {
-                $lastId = $entity->id;
+                $lastId = $entity->get('id');
 
                 yield $entity;
             }
