@@ -15,7 +15,6 @@ declare(strict_types=1);
 namespace BEdita\ImportTools\Test\TestCase\Utility;
 
 use BEdita\ImportTools\Utility\CsvTrait;
-use BEdita\ImportTools\Utility\XmlTrait;
 use Cake\TestSuite\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -25,7 +24,7 @@ use RuntimeException;
  * {@see \BEdita\ImportTools\Utility\CsvTrait} Test Case
  */
 #[CoversClass(CsvTrait::class)]
-#[UsesClass(XmlTrait::class)]
+#[UsesClass(CsvTrait::class)]
 class CsvTraitTest extends TestCase
 {
     use CsvTrait;
