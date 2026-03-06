@@ -18,14 +18,12 @@ use BEdita\ImportTools\Utility\ReadTrait;
 use Cake\TestSuite\TestCase;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\UsesClass;
 use RuntimeException;
 
 /**
  * {@see \BEdita\ImportTools\Utility\ReadTrait} Test Case
  */
 #[CoversClass(ReadTrait::class)]
-#[UsesClass(ReadTrait::class)]
 class ReadTraitTest extends TestCase
 {
     use ReadTrait;
