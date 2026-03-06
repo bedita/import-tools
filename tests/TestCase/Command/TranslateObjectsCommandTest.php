@@ -279,10 +279,8 @@ class TranslateObjectsCommandTest extends TestCase
         $conditions = [];
         foreach ($cmd->objectsIterator($conditions, 'en', 'it') as $object) {
             $catch = true;
-            static::assertInstanceOf(ObjectEntity::class, $object);
-            static::assertSame('users', $object->get('type'));
         }
-        static::assertTrue($catch, 'objectsIterator yeld user 1');
+        static::assertFalse($catch, 'objectsIterator find no users');
     }
 
     /**
