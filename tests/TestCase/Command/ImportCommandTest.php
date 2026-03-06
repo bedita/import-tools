@@ -80,11 +80,11 @@ class ImportCommandTest extends TestCase
         $this->assertOutputContains('--parent, -p');
         $this->assertOutputContains('destination folder uname');
         $this->assertOutputContains('--quiet, -q');
-        $this->assertOutputContains('Enable quiet output.');
+        $this->assertOutputContains('Enable quiet output');
         $this->assertOutputContains('--type, -t');
         $this->assertOutputContains('entity type to import <comment>(required)</comment>');
         $this->assertOutputContains('--verbose, -v');
-        $this->assertOutputContains('Enable verbose output.');
+        $this->assertOutputContains('Enable verbose output');
     }
 
     /**
