@@ -14,9 +14,9 @@ declare(strict_types=1);
  */
 namespace BEdita\ImportTools\Test\TestCase\Utility;
 
-use BEdita\ImportTools\Utility\ReadTrait;
 use BEdita\ImportTools\Utility\CsvTrait;
 use BEdita\ImportTools\Utility\FileTrait;
+use BEdita\ImportTools\Utility\ReadTrait;
 use BEdita\ImportTools\Utility\XmlTrait;
 use Cake\TestSuite\TestCase;
 use InvalidArgumentException;
