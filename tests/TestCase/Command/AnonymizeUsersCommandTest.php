@@ -129,21 +129,21 @@ class AnonymizeUsersCommandTest extends TestCase
         $users = $table->find()->toArray();
         foreach ($users as $user) {
             $tmp = array_filter($originalUsers, function ($originalUser) use ($user) {
-                return $originalUser->id === $user->id;
+                return $originalUser->get('id') === $user->get('id');
             });
             $originalUser = array_values($tmp)[0];
-            if ($originalUser->username === 'gustavo' || $originalUser->id === 1) {
-                $this->assertEquals($originalUser->name, $user->name);
-                $this->assertEquals($originalUser->surname, $user->surname);
-                $this->assertEquals($originalUser->username, $user->username);
-                $this->assertEquals($originalUser->email, $user->email);
-                $this->assertEquals($originalUser->status, $user->status);
+            if ($originalUser->get('username') === 'gustavo' || $originalUser->get('id') === 1) {
+                $this->assertEquals($originalUser->get('name'), $user->get('name'));
+                $this->assertEquals($originalUser->get('surname'), $user->get('surname'));
+                $this->assertEquals($originalUser->get('username'), $user->get('username'));
+                $this->assertEquals($originalUser->get('email'), $user->get('email'));
+                $this->assertEquals($originalUser->get('status'), $user->get('status'));
                 continue;
             }
-            $this->assertNotEquals($originalUser->name, $user->name);
-            $this->assertNotEquals($originalUser->surname, $user->surname);
-            $this->assertNotEquals($originalUser->username, $user->username);
-            $this->assertNotEquals($originalUser->email, $user->email);
+            $this->assertNotEquals($originalUser->get('name'), $user->get('name'));
+            $this->assertNotEquals($originalUser->get('surname'), $user->get('surname'));
+            $this->assertNotEquals($originalUser->get('username'), $user->get('username'));
+            $this->assertNotEquals($originalUser->get('email'), $user->get('email'));
         }
     }
 

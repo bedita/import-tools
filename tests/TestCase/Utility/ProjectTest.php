@@ -215,6 +215,7 @@ class ProjectTest extends TestCase
 
                             public function toArray(): array
                             {
+                                // @phpstan-ignore-next-line
                                 return [
                                     new class {
                                         public string $username = 'test-user';
