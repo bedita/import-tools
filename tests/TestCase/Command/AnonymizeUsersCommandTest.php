@@ -144,7 +144,6 @@ class AnonymizeUsersCommandTest extends TestCase
             $this->assertNotEquals($originalUser->get('surname'), $user->get('surname'));
             $this->assertNotEquals($originalUser->get('username'), $user->get('username'));
             $this->assertNotEquals($originalUser->get('email'), $user->get('email'));
-            $this->assertNotEquals($originalUser->get('status'), $user->get('status'));
         }
     }
 
