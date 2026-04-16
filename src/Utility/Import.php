@@ -228,14 +228,9 @@ class Import
         $this->errors = 0;
         $this->skipped = 0;
         $this->errorsDetails = [];
-        /** @var \BEdita\Core\Model\Table\ObjectsTable $objectsTable */
-        $objectsTable = $this->fetchTable('objects');
-        $this->objectsTable = $objectsTable;
-        $typesTable = $this->fetchTable($this->type);
-        $this->typeTable = $typesTable instanceof ObjectsBaseTable ? $typesTable : $objectsTable;
-        /** @var \BEdita\Core\Model\Table\TranslationsTable $translationsTable */
-        $translationsTable = $this->fetchTable('translations');
-        $this->translationsTable = $translationsTable;
+        $this->objectsTable = $this->fetchTable('objects');  // @phpstan-ignore-line
+        $this->typeTable = $this->fetchTable($this->type); // @phpstan-ignore-line
+        $this->translationsTable = $this->fetchTable('translations'); // @phpstan-ignore-line
     }
 
     /**
