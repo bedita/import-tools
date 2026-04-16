@@ -229,27 +229,11 @@ class Import
         $this->skipped = 0;
         $this->errorsDetails = [];
         $this->objectsTable = $this->fetchTable('objects'); // @phpstan-ignore-line
-        if ($this->objectTypeExists($type)) {
-            $this->typeTable = $this->fetchTable($type); // @phpstan-ignore-line
+        $typeTable = $this->fetchTable($type);
+        if ($typeTable instanceof ObjectsTable || $typeTable instanceof ObjectsBaseTable) {
+            $this->typeTable = $typeTable;
         }
         $this->translationsTable = $this->fetchTable('translations'); // @phpstan-ignore-line
-    }
-
-    /**
-     * Check if an object type exists
-     *
-     * @param string $type Object type name
-     * @return bool True if object type exists, false otherwise
-     */
-    protected function objectTypeExists(string $type): bool
-    {
-        try {
-            $this->fetchTable('ObjectTypes')->get($type);
-        } catch (Exception) {
-            return false;
-        }
-
-        return true;
     }
 
     /**
