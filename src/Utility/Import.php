@@ -228,14 +228,12 @@ class Import
         $this->errors = 0;
         $this->skipped = 0;
         $this->errorsDetails = [];
-        /** @var \BEdita\Core\Model\Table\ObjectsTable $objectsTable */
-        $objectsTable = $this->fetchTable('objects');
-        $this->objectsTable = $objectsTable;
-        $typesTable = $this->fetchTable($this->type);
-        $this->typeTable = $typesTable instanceof ObjectsBaseTable ? $typesTable : $objectsTable;
-        /** @var \BEdita\Core\Model\Table\TranslationsTable $translationsTable */
-        $translationsTable = $this->fetchTable('translations');
-        $this->translationsTable = $translationsTable;
+        $this->objectsTable = $this->fetchTable('objects'); // @phpstan-ignore-line
+        $typeTable = $this->fetchTable($type);
+        if ($typeTable instanceof ObjectsTable || $typeTable instanceof ObjectsBaseTable) {
+            $this->typeTable = $typeTable;
+        }
+        $this->translationsTable = $this->fetchTable('translations'); // @phpstan-ignore-line
     }
 
     /**
@@ -302,6 +300,9 @@ class Import
      */
     public function saveObject(array $obj): ObjectEntity
     {
+        if (empty($this->typeTable)) {
+            throw new BadRequestException(sprintf('Object type "%s" not found', $this->type));
+        }
         /** @var \BEdita\Core\Model\Entity\ObjectEntity $entity */
         $entity = $this->typeTable->newEmptyEntity();
         if (!empty($obj['uname']) || !empty($obj['id'])) {
