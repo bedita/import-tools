@@ -229,8 +229,27 @@ class Import
         $this->skipped = 0;
         $this->errorsDetails = [];
         $this->objectsTable = $this->fetchTable('objects'); // @phpstan-ignore-line
-        $this->typeTable = $this->fetchTable($this->type); // @phpstan-ignore-line
+        if ($this->objectTypeExists($type)) {
+            $this->typeTable = $this->fetchTable($type); // @phpstan-ignore-line
+        }
         $this->translationsTable = $this->fetchTable('translations'); // @phpstan-ignore-line
+    }
+
+    /**
+     * Check if an object type exists
+     *
+     * @param string $type Object type name
+     * @return bool True if object type exists, false otherwise
+     */
+    protected function objectTypeExists(string $type): bool
+    {
+        try {
+            $this->fetchTable('ObjectTypes')->get($type);
+        } catch (Exception) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -297,6 +316,9 @@ class Import
      */
     public function saveObject(array $obj): ObjectEntity
     {
+        if (empty($this->typeTable)) {
+            throw new BadRequestException(sprintf('Object type "%s" not found', $this->type));
+        }
         /** @var \BEdita\Core\Model\Entity\ObjectEntity $entity */
         $entity = $this->typeTable->newEmptyEntity();
         if (!empty($obj['uname']) || !empty($obj['id'])) {
